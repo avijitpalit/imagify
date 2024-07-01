@@ -1,0 +1,19 @@
+.navActive{
+    background: var(--color-primary);
+    color: #fff;
+    position: relative;
+}
+.navActive:after{
+    content: '';
+    position: absolute;
+    clip-path: polygon(100% 100%, 100% 0%, 50% 50%);
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    right: 0;
+    top: calc(50% - 10px);
+}
+.profileNavItem{
+    background: var(--color-secondary);
+    color: #fff;
+}
