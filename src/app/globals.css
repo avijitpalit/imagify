@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://cdn-uicons.flaticon.com/2.4.2/uicons-regular-rounded/css/uicons-regular-rounded.css');
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -33,6 +35,10 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.fa {
+  font-size: 1.25em; /* Adjust to your desired default size */
 }
 
 .bg-secondary{ background: var(--color-secondary); }
