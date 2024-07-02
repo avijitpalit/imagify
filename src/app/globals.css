@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://cdn-uicons.flaticon.com/2.4.2/uicons-regular-rounded/css/uicons-regular-rounded.css');
+/* @import url('https://cdn-uicons.flaticon.com/2.4.2/uicons-regular-rounded/css/uicons-regular-rounded.css'); */
 
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
-  --color-primary: #006DAA;
+  --color-primary: #695CFE;
+  --color-primary-dark: #5448dd;
   --color-secondary:  #90BAAD;
   --color-dark: #272727;
 }
@@ -35,10 +36,23 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .form-row .input{
+    @apply text-lg font-semibold rounded-lg border-2 p-3 w-full outline-none
+  }
+  .form-row .input:focus{ border-color: var(--color-primary); }
+  .btn{
+    @apply p-4 text-xl font-semibold;
+  }
+  .btn-primary{
+    @apply text-white rounded-full bg-primary;
+  }
+  .btn-primary:hover{ background: var(--color-primary-dark); }
+  .btn-primary:focus{ box-shadow: 0 0 0 4px #0001; background: var(--color-primary-dark); }
 }
 
 .fa {
   font-size: 1.25em; /* Adjust to your desired default size */
 }
 
+.bg-primary{ background: var(--color-primary); }
 .bg-secondary{ background: var(--color-secondary); }

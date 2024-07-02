@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Nunito } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/sidebar";
+import Sidebar from "@/components/Sidebar";
 import { ClerkProvider } from '@clerk/nextjs'
 import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css'
@@ -9,6 +9,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 config.autoAddCss = false; // Disable automatic CSS loading
 
 const inter = Inter({ subsets: ["latin"] });
+const nunito = Nunito({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -23,9 +24,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${ inter.className } flex`}>
+        <body className={`${ nunito.className } flex`}>
           <Sidebar/>
-          <main className="flex min-h-screen p-5 grow">{children}</main>
+          <main className="flex min-h-screen p-10 grow">{children}</main>
         </body>
       </html>
     </ClerkProvider>
