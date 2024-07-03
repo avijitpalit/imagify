@@ -4,14 +4,14 @@ import { faPlus, faRemove, faTrash, faTrashAlt } from '@fortawesome/free-solid-s
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, CldUploadWidget } from 'next-cloudinary';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const initialImageInfo = {
     public_id: '',
     url: ''
 }
 
-const TransformedImage = ({ imageInfo = initialImageInfo, transformStart = false }) => {
+const TransformedImage = ({ imageInfo = initialImageInfo, transformStart = false, setTransformStart }: any) => {
     const [isTransforming, setIsTransforming] = useState(true)
 
     return (
@@ -28,10 +28,10 @@ const TransformedImage = ({ imageInfo = initialImageInfo, transformStart = false
                         onLoad={() => {
                             console.log('Loaded');
                             setIsTransforming(false)
+                            setTransformStart(false)
                         }}
                         sizes='100vw'
                         fillBackground
-                        crop='pad'
                     />
                     {isTransforming && <div className="shimmer"></div>}
                 </div>
@@ -98,7 +98,7 @@ export default function Page() {
                         )}
                     </div>
                     <div className='w-1/2'>
-                        <TransformedImage imageInfo={imageInfo} transformStart={transformStart} />
+                        <TransformedImage imageInfo={imageInfo} transformStart={transformStart} setTransformStart={setTransformStart} />
                     </div>
                 </div>
 
