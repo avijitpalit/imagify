@@ -41,13 +41,16 @@ body {
   }
   .form-row .input:focus{ border-color: var(--color-primary); }
   .btn{
-    @apply p-4 text-xl font-semibold;
+    @apply p-4 text-lg font-semibold;
   }
   .btn-primary{
     @apply text-white rounded-full bg-primary;
   }
   .btn-primary:hover{ background: var(--color-primary-dark); }
-  .btn-primary:focus{ box-shadow: 0 0 0 4px #0001; background: var(--color-primary-dark); }
+  .btn-primary:focus{ box-shadow: 0 0 0 4px #695CFE55; background: var(--color-primary-dark); }
+  .shimmer{
+    @apply absolute inset-0 before:absolute before:inset-0 before:w-full before:h-full before:bg-gradient-to-r before:from-transparent before:via-black/5 before:to-transparent before:animate-[shimmer_1s_infinite] before:rounded-lg overflow-hidden
+  }
 }
 
 .fa {

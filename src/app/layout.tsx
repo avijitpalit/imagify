@@ -24,9 +24,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${ nunito.className } flex`}>
+        <body className={`${ nunito.className } flex h-screen`}>
           <Sidebar/>
-          <main className="flex min-h-screen p-10 grow">{children}</main>
+          <main className="p-10 grow h-screen overflow-auto">{children}</main>
         </body>
       </html>
     </ClerkProvider>
