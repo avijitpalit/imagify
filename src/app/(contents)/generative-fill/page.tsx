@@ -11,14 +11,14 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ imageInfo = initialImageInfo, transformStart = false, setTransformStart }: any) => {
+const TransformedImage = ({ imageInfo, transformStart,  onUploadedChange }: any) => {
     const [isTransforming, setIsTransforming] = useState(true)
 
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && imageInfo.public_id ? (
-                <div className='mt-3 overflow-hidden grow'>
+                <div className='mt-3 overflow-hidden grow relative'>
                     <CldImage
                         src={imageInfo.public_id} // Use this sample image or upload your own via the Media Explorer
                         width='100'
@@ -28,7 +28,10 @@ const TransformedImage = ({ imageInfo = initialImageInfo, transformStart = false
                         onLoad={() => {
                             console.log('Loaded');
                             setIsTransforming(false)
-                            setTransformStart(false)
+                            onUploadedChange(false)
+                        }}
+                        onError={(error) => {
+                            console.log(error)
                         }}
                         sizes='100vw'
                         fillBackground
@@ -46,10 +49,17 @@ const TransformedImage = ({ imageInfo = initialImageInfo, transformStart = false
 export default function Page() {
     const [imageInfo, setImageInfo] = useState(initialImageInfo)
     const [transformStart, setTransformStart] = useState(false)
+    const [isTransforming, setIsTransforming] = useState(false)
+    const [uploaded, setUploaded] = useState(false)
 
     const handleSuccess = (results: any, option: any) => {
-        console.log(results);
+        // console.log(results);
         setImageInfo(results.info)
+        setUploaded(true)
+    }
+
+    const handleTransform = () => {
+        setTransformStart(true)
     }
 
     return (
@@ -73,11 +83,9 @@ export default function Page() {
                 <div className="form-row mt-7 flex gap-5">
                     <div className='w-1/2'>
                         <h4 className='text-2xl font-bold'>Original</h4>
-                        {imageInfo.public_id ? (
-                            <div className="relative rounded-lg mt-3 overflow-hidden">
-                                <button className='w-[40px] h-[40px] flex items-center justify-center bg-red-500 text-white absolute right-3 top-3 rounded-lg hover:bg-red-600' type='button' onClick={() => {
-                                    setImageInfo(initialImageInfo)
-                                }}><FontAwesomeIcon icon={faTrashAlt}/></button>
+                        {uploaded ? (
+                            <div className="relative rounded-lg mt-3 overflow-hidden bg-gray-100 min-h-[300px]">
+                                <button className='w-[40px] h-[40px] flex items-center justify-center bg-red-500 text-white absolute right-3 top-3 rounded-lg hover:bg-red-600' type='button' onClick={() => { setUploaded(false) }}><FontAwesomeIcon icon={faTrashAlt}/></button>
                                 <Image className='w-full' width={0} height={0} sizes='100vw' alt='' src={imageInfo.url}/>
                             </div>
                         ) : (
@@ -98,12 +106,12 @@ export default function Page() {
                         )}
                     </div>
                     <div className='w-1/2'>
-                        <TransformedImage imageInfo={imageInfo} transformStart={transformStart} setTransformStart={setTransformStart} />
+                        <TransformedImage imageInfo={imageInfo} transformStart={transformStart} onUploadedChange={() => { setUploaded }} />
                     </div>
                 </div>
 
                 <div className="form-row mt-10">
-                    <button type="button" disabled={imageInfo.public_id ? false : true} className='btn btn-primary w-full transition disabled:opacity-50' onClick={() => { setTransformStart(true) }}>Apply Transform</button>
+                    <button type="button" disabled={imageInfo.public_id ? false : true} className='btn btn-primary w-full transition disabled:opacity-50' onClick={handleTransform}>Apply Transform</button>
                 </div>
 
                 {/* <CldImage
