@@ -1,6 +1,6 @@
 "use client";
 
-import { faPlus, faRemove, faTrash, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, CldUploadWidget } from 'next-cloudinary';
 import Image from 'next/image';
@@ -11,24 +11,29 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ imageInfo, transformStart,  onUploadedChange }: any) => {
+const TransformedImage = ({ publicId, transformStart }: any) => {
     const [isTransforming, setIsTransforming] = useState(true)
+    let temp: any = null
+    // useEffect(() => {
+    //     console.log(imageInfo)
+    // }, [imageInfo])
 
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
-            {transformStart && imageInfo.public_id ? (
+            {transformStart && publicId ? (
                 <div className='mt-3 overflow-hidden grow relative'>
                     <CldImage
-                        src={imageInfo.public_id} // Use this sample image or upload your own via the Media Explorer
+                        src={publicId}
                         width='100'
-                        height="100"
+                        height='100'
                         alt=''
                         className='w-full rounded-lg'
                         onLoad={() => {
                             console.log('Loaded');
                             setIsTransforming(false)
-                            onUploadedChange(false)
+                            // onUploadedReset()
+                            // transformReset()
                         }}
                         onError={(error) => {
                             console.log(error)
@@ -51,8 +56,14 @@ export default function Page() {
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
+    const [publicId, setPublicId] = useState<String>()
 
-    const handleSuccess = (results: any, option: any) => {
+    useEffect(() => {
+        console.log('Uploaded', uploaded);
+        console.log('transformStart', transformStart);
+    }, [uploaded, transformStart])
+
+    const handleSuccess = (results: any) => {
         // console.log(results);
         setImageInfo(results.info)
         setUploaded(true)
@@ -60,6 +71,7 @@ export default function Page() {
 
     const handleTransform = () => {
         setTransformStart(true)
+        setPublicId(imageInfo.public_id)
     }
 
     return (
@@ -106,27 +118,29 @@ export default function Page() {
                         )}
                     </div>
                     <div className='w-1/2'>
-                        <TransformedImage imageInfo={imageInfo} transformStart={transformStart} onUploadedChange={() => { setUploaded }} />
+                        <TransformedImage
+                        publicId={publicId}
+                        transformStart={transformStart}
+                        />
                     </div>
                 </div>
 
                 <div className="form-row mt-10">
-                    <button type="button" disabled={imageInfo.public_id ? false : true} className='btn btn-primary w-full transition disabled:opacity-50' onClick={handleTransform}>Apply Transform</button>
+                    <button type="button" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50' onClick={handleTransform}>Apply Transform</button>
                 </div>
 
                 {/* <CldImage
-                    src='szbeopx5p3dri17grv94' // Use this sample image or upload your own via the Media Explorer
-                    width='100'
-                    height='100'
+                    src='sample' // Use this sample image or upload your own via the Media Explorer
+                    width='200'
+                    height='200'
                     alt=''
                     sizes='100vw'
-                    className='w-full'
+                    className='mt-5'
                     onLoad={() => {
                         console.log('Loaded');
                         // setIsTransforming(false)
                     }}
                     fillBackground
-                    // crop='pad'
                 /> */}
             </form>
             <div className="py-5"></div>
