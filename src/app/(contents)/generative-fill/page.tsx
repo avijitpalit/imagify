@@ -11,19 +11,14 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart }: any) => {
-    const [isTransforming, setIsTransforming] = useState(true)
-    let temp: any = null
-    // useEffect(() => {
-    //     console.log(imageInfo)
-    // }, [imageInfo])
-
+const TransformedImage = ({ publicId, transformStart, isTransforming, resetIsTransforming, firstLoad }: any) => {
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && publicId ? (
                 <div className='mt-3 overflow-hidden grow relative'>
                     <CldImage
+                        key={publicId}
                         src={publicId}
                         width='100'
                         height='100'
@@ -31,12 +26,12 @@ const TransformedImage = ({ publicId, transformStart }: any) => {
                         className='w-full rounded-lg'
                         onLoad={() => {
                             console.log('Loaded');
-                            setIsTransforming(false)
-                            // onUploadedReset()
-                            // transformReset()
+                            setTimeout(() => {
+                                resetIsTransforming()
+                            }, 500);
                         }}
                         onError={(error) => {
-                            console.log(error)
+                            console.log('Image loading error: ', error)
                         }}
                         sizes='100vw'
                         fillBackground
@@ -50,13 +45,17 @@ const TransformedImage = ({ publicId, transformStart }: any) => {
     )
 }
 
-// By default, the CldImage component applies auto-format and auto-quality to all delivery URLs for optimized delivery.
 export default function Page() {
     const [imageInfo, setImageInfo] = useState(initialImageInfo)
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
-    const [publicId, setPublicId] = useState<String>()
+    const [publicId, setPublicId] = useState<String>('')
+    const [isLoading, setIsLoading] = useState(false)
+    const [firstLoad, setFirstLoad] = useState<String[]>([])
+    useEffect(() => {
+        console.log(firstLoad)
+    }, [firstLoad])
 
     useEffect(() => {
         console.log('Uploaded', uploaded);
@@ -64,14 +63,22 @@ export default function Page() {
     }, [uploaded, transformStart])
 
     const handleSuccess = (results: any) => {
-        // console.log(results);
         setImageInfo(results.info)
         setUploaded(true)
+        setPublicId('')
     }
 
     const handleTransform = () => {
         setTransformStart(true)
-        setPublicId(imageInfo.public_id)
+        setIsLoading(true)
+        // setPublicId('')
+        setIsTransforming(false)
+        setTimeout(() => {
+            setIsTransforming(true)
+            setPublicId(imageInfo.public_id)
+            setIsLoading(false)
+        }, 1000);
+        // setIsTransforming(true)
     }
 
     return (
@@ -118,10 +125,22 @@ export default function Page() {
                         )}
                     </div>
                     <div className='w-1/2'>
-                        <TransformedImage
+                        {!isLoading && <TransformedImage
                         publicId={publicId}
                         transformStart={transformStart}
-                        />
+                        isTransforming={isTransforming}
+                        resetIsTransforming={() => {
+                            setIsTransforming(false);
+                            setFirstLoad(prev => {
+                                if (!prev.includes(publicId)) {
+                                  return [...prev, publicId];
+                                }
+                                return prev;
+                            });
+                        }}
+                        firstLoad
+                        />}
+                        
                     </div>
                 </div>
 
