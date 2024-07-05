@@ -19,20 +19,20 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded 
             {transformStart && publicId ? (
                 <div className='mt-3 overflow-hidden grow relative'>
                     <CldImage
-                        src={publicId}
-                        width='100'
-                        height='100'
-                        alt=''
-                        className='w-full rounded-lg'
-                        onLoad={() => {
-                            setPrevPublicId(publicId)
-                            imgLoaded()
-                        }}
-                        onError={(error) => {
-                            console.log('Image loading error: ', error)
-                        }}
-                        sizes='100vw'
-                        fillBackground
+                    src={publicId}
+                    width='100'
+                    height='100'
+                    alt=''
+                    className='w-full rounded-lg'
+                    onLoad={() => {
+                        setPrevPublicId(publicId)
+                        imgLoaded()
+                    }}
+                    onError={(error) => {
+                        console.log('Image loading error: ', error)
+                    }}
+                    sizes='100vw'
+                    fillBackground
                     />
                     {isTransforming && publicId != prevPublicId && <div className="shimmer"></div>}
                 </div>
