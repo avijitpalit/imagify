@@ -11,24 +11,22 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, resetIsTransforming, firstLoad }: any) => {
+const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded }: any) => {
+    const [prevPublicId, setPrevPublicId] = useState('')
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && publicId ? (
                 <div className='mt-3 overflow-hidden grow relative'>
                     <CldImage
-                        key={publicId}
                         src={publicId}
                         width='100'
                         height='100'
                         alt=''
                         className='w-full rounded-lg'
                         onLoad={() => {
-                            console.log('Loaded');
-                            setTimeout(() => {
-                                resetIsTransforming()
-                            }, 500);
+                            setPrevPublicId(publicId)
+                            imgLoaded()
                         }}
                         onError={(error) => {
                             console.log('Image loading error: ', error)
@@ -36,7 +34,7 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, resetIsTra
                         sizes='100vw'
                         fillBackground
                     />
-                    {isTransforming && <div className="shimmer"></div>}
+                    {isTransforming && publicId != prevPublicId && <div className="shimmer"></div>}
                 </div>
             ) : (
                 <div className="bg-gray-100 rounded-lg flex items-center justify-center mt-3 h-[300px] grow"></div>
@@ -51,11 +49,6 @@ export default function Page() {
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
     const [publicId, setPublicId] = useState<String>('')
-    const [isLoading, setIsLoading] = useState(false)
-    const [firstLoad, setFirstLoad] = useState<String[]>([])
-    useEffect(() => {
-        console.log(firstLoad)
-    }, [firstLoad])
 
     useEffect(() => {
         console.log('Uploaded', uploaded);
@@ -70,14 +63,14 @@ export default function Page() {
 
     const handleTransform = () => {
         setTransformStart(true)
-        setIsLoading(true)
         // setPublicId('')
-        setIsTransforming(false)
-        setTimeout(() => {
-            setIsTransforming(true)
-            setPublicId(imageInfo.public_id)
-            setIsLoading(false)
-        }, 1000);
+        setIsTransforming(true)
+        setPublicId(imageInfo.public_id)
+        // setTimeout(() => {
+        //     // setIsTransforming(true)
+        //     setPublicId(imageInfo.public_id)
+        //     setIsLoading(false)
+        // }, 1000);
         // setIsTransforming(true)
     }
 
@@ -125,22 +118,14 @@ export default function Page() {
                         )}
                     </div>
                     <div className='w-1/2'>
-                        {!isLoading && <TransformedImage
+                        <TransformedImage
                         publicId={publicId}
                         transformStart={transformStart}
                         isTransforming={isTransforming}
-                        resetIsTransforming={() => {
+                        imgLoaded={() => {
                             setIsTransforming(false);
-                            setFirstLoad(prev => {
-                                if (!prev.includes(publicId)) {
-                                  return [...prev, publicId];
-                                }
-                                return prev;
-                            });
                         }}
-                        firstLoad
-                        />}
-                        
+                        />
                     </div>
                 </div>
 
