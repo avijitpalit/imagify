@@ -11,7 +11,7 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded }: any) => {
+const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, ...transformProperties }: any) => {
     const [prevPublicId, setPrevPublicId] = useState('')
     return (
         <div className='h-full flex flex-col'>
@@ -20,9 +20,9 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded 
                 <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg'>
                     <CldImage
                     src={publicId}
-                    width='160'
-                    height='300'
-                    alt=''
+                    width='960'
+                    height='640'
+                    alt='Transformed image'
                     className='rounded-lg'
                     onLoad={() => {
                         setPrevPublicId(publicId)
@@ -32,8 +32,9 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded 
                         console.log('Image loading error: ', error)
                     }}
                     // sizes='100vw'
-                    fillBackground
-                    crop='pad'
+                    // fillBackground
+                    // crop='fit'
+                    {...transformProperties}
                     />
                     {isTransforming && publicId != prevPublicId && <div className="shimmer"></div>}
                 </div>
@@ -55,7 +56,8 @@ export default function Page() {
         width: 0,
         height: 0,
         crop: '',
-        aspectRatio: ''
+        ratio_1: 0,
+        ratio_2: 0
     }
     const [formValue, setFormValue] = useState(initialFormValue)
 
@@ -78,19 +80,11 @@ export default function Page() {
 
     const handleInputChange = (e: any) => {
         const {name, value} = e.target
-        if(name == 'ratio_1' || name == 'ratio_2'){
-            const ratio_1 = e.target.ratio_1.value || 0
-            const ratio_2 = e.target.ratio_2.value || 0
-            setFormValue({
-                ...formValue,
-                aspectRatio: `${ratio_1}:${ratio_2}`
-            })
-        } else {
-            setFormValue({
-                ...formValue,
-                [name]: value
-            })
-        }
+        // console.log(name, value)
+        setFormValue({
+            ...formValue,
+            [name]: value
+        })
     }
 
     return (
@@ -132,11 +126,11 @@ export default function Page() {
                         <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
                         <div className="flex gap-3 items-center">
                             <div className="flex-1">
-                                <input className='input' type="number" name="ratio_1" id="ratio_1" />
+                                <input className='input' type="number" name="ratio_1" id="ratio_1" onChange={handleInputChange} />
                             </div>
                             <span><b>:</b></span>
                             <div className="flex-1">
-                                <input className='input' type="number" name="ratio_2" id="ratio_2" />
+                                <input className='input' type="number" name="ratio_2" id="ratio_2" onChange={handleInputChange} />
                             </div>
                         </div>
                     </div>
@@ -175,6 +169,9 @@ export default function Page() {
                         imgLoaded={() => {
                             setIsTransforming(false);
                         }}
+                        aspectRatio='1:1'
+                        fillBackground
+                        crop='pad'
                         />
                     </div>
                 </div>
