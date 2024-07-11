@@ -4,28 +4,40 @@ import { faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, CldUploadWidget } from 'next-cloudinary';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 
 const initialImageInfo = {
     public_id: '',
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, ...transformProperties }: any) => {
+const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, renderKey, ...transformProperties }: any) => {
     const [prevPublicId, setPrevPublicId] = useState('')
+    const [prevTransformProperties, setPrevTransformProperties] = useState<any>()
+    /* useEffect(() => {
+      console.log(transformProperties, prevTransformProperties)
+    }, [prevTransformProperties, transformProperties]) */
+    useEffect(() => {
+        console.log('transformStart changed', transformStart)
+      }, [transformStart])
+    
+
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && publicId ? (
                 <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg'>
                     <CldImage
+                    key={renderKey}
                     src={publicId}
-                    width='960'
-                    height='640'
+                    // width='960'
+                    // height='640'
                     alt='Transformed image'
                     className='rounded-lg'
+                    onLoadStart={() => { console.log('load started') }}
                     onLoad={() => {
                         setPrevPublicId(publicId)
+                        // setPrevTransformProperties(transformProperties)
                         imgLoaded()
                     }}
                     onError={(error) => {
@@ -36,9 +48,10 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded,
                     // crop='fit'
                     {...transformProperties}
                     />
-                    {isTransforming && publicId != prevPublicId && <div className="shimmer"></div>}
+                    {/* {isTransforming && publicId != prevPublicId && <div className="shimmer"></div>} */}
+                    {isTransforming && <div className="shimmer"></div>}
                 </div>
-            ) : (
+            ) : (     
                 <div className="bg-gray-100 rounded-lg flex items-center justify-center mt-3 h-[300px] grow"></div>
             )}
         </div>
@@ -60,6 +73,7 @@ export default function Page() {
         ratio_2: 0
     }
     const [formValue, setFormValue] = useState(initialFormValue)
+    const [renderKey, setRenderKey] = useState('')
 
     useEffect(() => {
         console.log('Uploaded', uploaded);
@@ -76,6 +90,7 @@ export default function Page() {
         setTransformStart(true)
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
+        setRenderKey(Math.random())
     }
 
     const handleInputChange = (e: any) => {
@@ -167,11 +182,19 @@ export default function Page() {
                         transformStart={transformStart}
                         isTransforming={isTransforming}
                         imgLoaded={() => {
+                            console.log('Loaded');
                             setIsTransforming(false);
+                            // setTransformStart(false)
                         }}
-                        aspectRatio='1:1'
+                        renderKey={renderKey}
+                        // aspectRatio={`${formValue.ratio_1}:${formValue.ratio_2}`}
+                        aspectRatio={`9:16`}
                         fillBackground
-                        crop='pad'
+                        crop={formValue.crop}
+                        // width={formValue.width}
+                        // height={formValue.height}
+                        width={100}
+                        height={200}
                         />
                     </div>
                 </div>
