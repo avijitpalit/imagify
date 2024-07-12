@@ -90,7 +90,7 @@ export default function Page() {
         setTransformStart(true)
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
-        setRenderKey(Math.random())
+        setRenderKey('' + Math.random())
     }
 
     const handleInputChange = (e: any) => {
@@ -102,29 +102,48 @@ export default function Page() {
         })
     }
 
+    const handleSubmit = (e: any) => {
+        e.preventDefault()
+        console.log('form submitting...')
+        const x = e.target.width.value
+        setFormValue(prev => ({
+            ...prev,
+            name: e.target.name.value,
+            width: e.target.width.value,
+            height: e.target.height.value,
+            crop: e.target.crop.value,
+            ratio_1: e.target.ratio_1.value,
+            ratio_2: e.target.ratio_2.value
+        }))
+        setTransformStart(true)
+        setIsTransforming(true)
+        setPublicId(imageInfo.public_id)
+        setRenderKey('' + Math.random())
+    }
+
     return (
         <div className='w-full max-w-[1000px]'>
-            <form action="" method="post">
+            <form action="" method="post" onSubmit={handleSubmit}>
                 <div className="form-row">
                     <label className='block text-lg font-semibold' htmlFor="name">Name</label>
-                    <input className='input' type="text" name="name" id="name" onChange={handleInputChange} />
+                    <input className='input' type="text" name="name" id="name" />
                 </div>
 
                 <div className="form-row flex gap-3 mt-3">
                     <div className='flex-auto'>
                         <label className='block text-lg font-semibold' htmlFor="name">Width</label>
-                        <input className='input' type="number" name="width" id="width" required onChange={handleInputChange} />
+                        <input className='input' type="number" name="width" id="width" required />
                     </div>
                     <div className='flex-auto'>
                         <label className='block text-lg font-semibold' htmlFor="height">Height</label>
-                        <input className='input' type="number" name="height" id="height" required onChange={handleInputChange} />
+                        <input className='input' type="number" name="height" id="height" required />
                     </div>
                 </div>
 
                 <div className="form-row mt-3 flex gap-3">
                     <div className="flex-1">
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
-                        <select className='input bg-white' name="crop" id="crop" onChange={handleInputChange}>
+                        <select className='input bg-white' name="crop" id="crop">
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
                             <option value="auto_pad">Auto with padding</option>
@@ -141,11 +160,11 @@ export default function Page() {
                         <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
                         <div className="flex gap-3 items-center">
                             <div className="flex-1">
-                                <input className='input' type="number" name="ratio_1" id="ratio_1" onChange={handleInputChange} />
+                                <input className='input' type="number" name="ratio_1" id="ratio_1" />
                             </div>
                             <span><b>:</b></span>
                             <div className="flex-1">
-                                <input className='input' type="number" name="ratio_2" id="ratio_2" onChange={handleInputChange} />
+                                <input className='input' type="number" name="ratio_2" id="ratio_2" />
                             </div>
                         </div>
                     </div>
@@ -193,14 +212,14 @@ export default function Page() {
                         crop={formValue.crop}
                         // width={formValue.width}
                         // height={formValue.height}
-                        width={100}
-                        height={200}
+                        width={formValue.width}
+                        height={formValue.height}
                         />
                     </div>
                 </div>
 
                 <div className="form-row mt-10">
-                    <button type="button" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50' onClick={handleTransform}>Apply Transform</button>
+                    <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Apply Transform</button>
                 </div>
 
                 <div className="form-row mt-10">
