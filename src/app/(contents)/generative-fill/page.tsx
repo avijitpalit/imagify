@@ -1,32 +1,36 @@
 "use client";
 
-import { faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, CldUploadWidget } from 'next-cloudinary';
 import Image from 'next/image';
 import React, { use, useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const initialImageInfo = {
     public_id: '',
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, renderKey, ...transformProperties }: any) => {
+const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, renderKey, ...transformProperties }: any) => {
     const [prevPublicId, setPrevPublicId] = useState('')
-    const [prevTransformProperties, setPrevTransformProperties] = useState<any>()
+    // const [prevTransformProperties, setPrevTransformProperties] = useState<any>()
     /* useEffect(() => {
       console.log(transformProperties, prevTransformProperties)
     }, [prevTransformProperties, transformProperties]) */
-    useEffect(() => {
+    /* useEffect(() => {
         console.log('transformStart changed', transformStart)
-      }, [transformStart])
-    
+    }, [transformStart]) */
 
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && publicId ? (
-                <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg'>
+                <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg relative'>
+                    <a href="#" className="p-4 rounded-lg bg-[var(--color-green)] w-[40px] h-[40px] flex items-center justify-center absolute right-3 top-3">
+                        <FontAwesomeIcon icon={faDownload} className='text-white'/>
+                    </a>
                     <CldImage
                     key={renderKey}
                     src={publicId}
@@ -40,9 +44,7 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded,
                         // setPrevTransformProperties(transformProperties)
                         imgLoaded()
                     }}
-                    onError={(error) => {
-                        console.log('Image loading error: ', error)
-                    }}
+                    onError={onError}
                     // sizes='100vw'
                     // fillBackground
                     // crop='fit'
@@ -104,8 +106,6 @@ export default function Page() {
 
     const handleSubmit = (e: any) => {
         e.preventDefault()
-        console.log('form submitting...')
-        const x = e.target.width.value
         setFormValue(prev => ({
             ...prev,
             name: e.target.name.value,
@@ -203,15 +203,21 @@ export default function Page() {
                         imgLoaded={() => {
                             console.log('Loaded');
                             setIsTransforming(false);
+                            toast.success('Image transformed')
                             // setTransformStart(false)
                         }}
+                        onError={() => {
+                            setIsTransforming(false)
+                            toast.error('Something went wrong, image not loaded')
+                        }}
                         renderKey={renderKey}
-                        // aspectRatio={`${formValue.ratio_1}:${formValue.ratio_2}`}
-                        aspectRatio={`9:16`}
+                        {...((formValue.ratio_1 || formValue.ratio_2) != 0 && {
+                            aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`
+                        })}
+                        // aspectRatio={`${ formValue.ratio_1 }:${ formValue.ratio_2 }`}
                         fillBackground
-                        crop={formValue.crop}
-                        // width={formValue.width}
-                        // height={formValue.height}
+                        {...(formValue.crop && { crop: formValue.crop })}
+                        // crop={formValue.crop}
                         width={formValue.width}
                         height={formValue.height}
                         />
@@ -222,9 +228,11 @@ export default function Page() {
                     <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Apply Transform</button>
                 </div>
 
-                <div className="form-row mt-10">
+                <div className="form-row mt-10 hidden">
                     <button type="button" className='btn btn-primary w-full transition disabled:opacity-50' onClick={() => { console.log(formValue) }}>Test</button>
                 </div>
+
+                <ToastContainer/>
 
                 {/* <CldImage
                     src='sample' // Use this sample image or upload your own via the Media Explorer
