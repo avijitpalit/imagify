@@ -47,6 +47,7 @@ body {
   .btn-primary{
     @apply text-white rounded-full bg-primary;
   }
+  .btn-rounded-0{ @apply rounded-lg }
   .btn-primary:hover{ background: var(--color-primary-dark); }
   .btn-primary:focus{ box-shadow: 0 0 0 4px #695CFE55; background: var(--color-primary-dark); }
   .shimmer{

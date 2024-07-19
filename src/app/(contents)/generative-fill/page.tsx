@@ -214,10 +214,8 @@ export default function Page() {
                         {...((formValue.ratio_1 || formValue.ratio_2) != 0 && {
                             aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`
                         })}
-                        // aspectRatio={`${ formValue.ratio_1 }:${ formValue.ratio_2 }`}
                         fillBackground
                         {...(formValue.crop && { crop: formValue.crop })}
-                        // crop={formValue.crop}
                         width={formValue.width}
                         height={formValue.height}
                         />
