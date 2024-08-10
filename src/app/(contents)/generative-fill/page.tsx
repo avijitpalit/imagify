@@ -2,9 +2,9 @@
 
 import { faDownload, faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { CldImage, CldUploadWidget } from 'next-cloudinary';
+import { CldImage, CldUploadWidget, getCldImageUrl } from 'next-cloudinary';
 import Image from 'next/image';
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,7 +13,7 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, renderKey, ...transformProperties }: any) => {
+const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, onDownload, renderKey, ...transformProperties }: any) => {
     const [prevPublicId, setPrevPublicId] = useState('')
     // const [prevTransformProperties, setPrevTransformProperties] = useState<any>()
     /* useEffect(() => {
@@ -23,12 +23,40 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded,
         console.log('transformStart changed', transformStart)
     }, [transformStart]) */
 
+    const download = (url: string, filename: string) => {
+        if (!url) {
+            throw new Error("Resource URL not provided! You need to provide one");
+        }
+        
+        fetch(url)
+            .then((response) => response.blob())
+            .then((blob) => {
+            const blobURL = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobURL;
+        
+            if (filename && filename.length)
+                a.download = `${filename.replace(" ", "_")}.png`;
+            document.body.appendChild(a);
+            a.click();
+            })
+            .catch((error) => console.log({ error }));
+    };
+
+    const handleDownload = (e: any) => {
+        e.preventDefault()
+        download(getCldImageUrl({
+            src: publicId,
+            ...transformProperties
+        }), 'transformed-image')
+    }
+
     return (
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && publicId ? (
                 <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg relative'>
-                    <a href="#" className="p-4 rounded-lg bg-[var(--color-green)] w-[40px] h-[40px] flex items-center justify-center absolute right-3 top-3">
+                    <a onClick={handleDownload} href="#" className="p-4 rounded-lg bg-[var(--color-green)] w-[40px] h-[40px] flex items-center justify-center absolute right-3 top-3 hover:bg-[var(--color-green-dark)]">
                         <FontAwesomeIcon icon={faDownload} className='text-white'/>
                     </a>
                     <CldImage
@@ -121,6 +149,32 @@ export default function Page() {
         setRenderKey('' + Math.random())
     }
 
+    const handleDownload = (e: any) => {
+        e.preventDefault()
+        console.log(imageInfo)
+        //const url = getCldImageUrl()
+    }
+
+    const download = (url: string, filename: string) => {
+        if (!url) {
+            throw new Error("Resource URL not provided! You need to provide one");
+        }
+        
+        fetch(url)
+            .then((response) => response.blob())
+            .then((blob) => {
+            const blobURL = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobURL;
+        
+            if (filename && filename.length)
+                a.download = `${filename.replace(" ", "_")}.png`;
+            document.body.appendChild(a);
+            a.click();
+            })
+            .catch((error) => console.log({ error }));
+    };
+
     return (
         <div className='w-full max-w-[1000px]'>
             <form action="" method="post" onSubmit={handleSubmit}>
@@ -210,6 +264,7 @@ export default function Page() {
                             setIsTransforming(false)
                             toast.error('Something went wrong, image not loaded')
                         }}
+                        onDownload={handleDownload}
                         renderKey={renderKey}
                         {...((formValue.ratio_1 || formValue.ratio_2) != 0 && {
                             aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`

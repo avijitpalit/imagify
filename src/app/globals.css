@@ -13,6 +13,7 @@
   --color-secondary:  #90BAAD;
   --color-dark: #272727;
   --color-green: #2ECC71;
+  --color-green-dark: #20b35d;
 }
 
 @media (prefers-color-scheme: dark) {

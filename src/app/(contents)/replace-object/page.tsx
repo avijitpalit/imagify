@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import React, { useState } from 'react'
+// import { Client } from "@gradio/client";
 
 const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN
 
@@ -17,6 +18,8 @@ async function query(data: any) {
 			body: JSON.stringify(data),
 		}
 	);
+    console.log(response);
+    
 	const result = await response.blob();
 	return result;
 }
@@ -31,7 +34,7 @@ const Page = () => {
         console.log(HF_TOKEN)
         setIsLoading(true)
         setImgUrl('')
-        query({"inputs": prompt}).then((response) => {
+        query({inputs: prompt, options: { wait_for_model: false }, parameters: { max_time: 120 }}).then((response) => {
             console.log(response)
             const url = URL.createObjectURL(response)
             console.log(url)
@@ -52,12 +55,31 @@ const Page = () => {
         });
     }
 
+    const generateImage = async (e: any) => {
+        e.preventDefault()
+        
+        // const client = await Client.connect("mukaist/DALLE-4K", { hf_token: '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' });
+        /* const result = await client.predict("/run", { 		
+            prompt: "Hello!!", 		
+            negative_prompt: "Hello!!", 		
+            use_negative_prompt: true, 		
+            style: "3840 x 2160", 		
+            seed: 0, 		
+            width: 512, 		
+            height: 512, 		
+            guidance_scale: 0.1, 		
+            randomize_seed: true, 
+        });
+
+        console.log(result.data); */
+    }
+
     return (
         <div>
             <h2 className='text-3xl font-bold'>Text to image</h2>
 
             <div className='mt-5'>
-                <form action="#" id="txt-to-img-form" onSubmit={handleSubmit}>
+                <form action="#" id="txt-to-img-form" method='post' onSubmit={handleSubmit}>
                     <div className="form-row">
                         <label className='block text-lg font-semibold' htmlFor="prompt">Prompt</label>
                         <div className="flex gap-3 items-center">
