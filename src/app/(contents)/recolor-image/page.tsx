@@ -4,7 +4,7 @@ import React from 'react'
 
 const Page = () => {
   const handleClick = async () => {
-    
+    // comment
   }
 
   return (
