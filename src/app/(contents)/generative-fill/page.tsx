@@ -13,7 +13,7 @@ const initialImageInfo = {
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, onDownload, renderKey, ...transformProperties }: any) => {
+const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, renderKey, ...transformProperties }: any) => {
     const [prevPublicId, setPrevPublicId] = useState('')
     // const [prevTransformProperties, setPrevTransformProperties] = useState<any>()
     /* useEffect(() => {
@@ -123,14 +123,14 @@ export default function Page() {
         setRenderKey('' + Math.random())
     }
 
-    const handleInputChange = (e: any) => {
+    /* const handleInputChange = (e: any) => {
         const {name, value} = e.target
         // console.log(name, value)
         setFormValue({
             ...formValue,
             [name]: value
         })
-    }
+    } */
 
     const handleSubmit = (e: any) => {
         e.preventDefault()
@@ -149,13 +149,13 @@ export default function Page() {
         setRenderKey('' + Math.random())
     }
 
-    const handleDownload = (e: any) => {
+    /* const handleDownload = (e: any) => {
         e.preventDefault()
         console.log(imageInfo)
         //const url = getCldImageUrl()
-    }
+    } */
 
-    const download = (url: string, filename: string) => {
+    /* const download = (url: string, filename: string) => {
         if (!url) {
             throw new Error("Resource URL not provided! You need to provide one");
         }
@@ -173,7 +173,7 @@ export default function Page() {
             a.click();
             })
             .catch((error) => console.log({ error }));
-    };
+    }; */
 
     return (
         <div className='w-full max-w-[1000px]'>
@@ -185,7 +185,7 @@ export default function Page() {
 
                 <div className="form-row flex gap-3 mt-3">
                     <div className='flex-auto'>
-                        <label className='block text-lg font-semibold' htmlFor="name">Width</label>
+                        <label className='block text-lg font-semibold' htmlFor="width">Width</label>
                         <input className='input' type="number" name="width" id="width" required />
                     </div>
                     <div className='flex-auto'>
@@ -264,7 +264,6 @@ export default function Page() {
                             setIsTransforming(false)
                             toast.error('Something went wrong, image not loaded')
                         }}
-                        onDownload={handleDownload}
                         renderKey={renderKey}
                         {...((formValue.ratio_1 || formValue.ratio_2) != 0 && {
                             aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`

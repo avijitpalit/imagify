@@ -1,104 +1,158 @@
 'use client'
 
+import { faDownload, faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { CldImage, CldUploadWidget, getCldImageUrl } from 'next-cloudinary';
 import Image from 'next/image';
 import React, { useState } from 'react'
-// import { Client } from "@gradio/client";
-
-const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN
-
-async function query(data: any) {
-	const response = await fetch(
-		"https://api-inference.huggingface.co/models/SG161222/RealVisXL_V4.0",
-		{
-			headers: {
-				Authorization: `Bearer ${ HF_TOKEN }`,
-				"Content-Type": "application/json",
-			},
-			method: "POST",
-			body: JSON.stringify(data),
-		}
-	);
-    console.log(response);
-    
-	const result = await response.blob();
-	return result;
-}
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import TransformedImage from '@/components/TransformedImage';
+import { initialImageInfo } from '@/utils/helper';
 
 const Page = () => {
-    const [imgUrl, setImgUrl] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
+    const [imageInfo, setImageInfo] = useState(initialImageInfo)
+    const [transformStart, setTransformStart] = useState(false)
+    const [isTransforming, setIsTransforming] = useState(false)
+    const [uploaded, setUploaded] = useState(false)
+    const [publicId, setPublicId] = useState<String>('')
+    const initialFormValue = {
+        name: '',
+        width: 0,
+        height: 0,
+        crop: '',
+        replace_from: '',
+        replace_to: ''
+    }
+    const [formValue, setFormValue] = useState(initialFormValue)
+    const [renderKey, setRenderKey] = useState('')
+
+    const handleSuccess = (results: any) => {
+        setImageInfo(results.info)
+        setUploaded(true)
+        setPublicId('')
+    }
 
     const handleSubmit = (e: any) => {
         e.preventDefault()
-        const prompt = e.target.prompt.value
-        console.log(HF_TOKEN)
-        setIsLoading(true)
-        setImgUrl('')
-        query({inputs: prompt, options: { wait_for_model: false }, parameters: { max_time: 120 }}).then((response) => {
-            console.log(response)
-            const url = URL.createObjectURL(response)
-            console.log(url)
-            setImgUrl(url)
-            setIsLoading(false)
-
-            /* const image = new Image();
-            image.src = url;
-            image.onload = function() {
-                // Image is loaded and ready for display
-                document.body.appendChild(image); // Append image to the body
-                console.log('image added');
-                
-            }; */
-        })
-        .catch(error => {
-            console.log(error)
-        });
-    }
-
-    const generateImage = async (e: any) => {
-        e.preventDefault()
-        
-        // const client = await Client.connect("mukaist/DALLE-4K", { hf_token: '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' });
-        /* const result = await client.predict("/run", { 		
-            prompt: "Hello!!", 		
-            negative_prompt: "Hello!!", 		
-            use_negative_prompt: true, 		
-            style: "3840 x 2160", 		
-            seed: 0, 		
-            width: 512, 		
-            height: 512, 		
-            guidance_scale: 0.1, 		
-            randomize_seed: true, 
-        });
-
-        console.log(result.data); */
+        setFormValue(prev => ({
+            ...prev,
+            name: e.target.name.value,
+            width: e.target.width.value,
+            height: e.target.height.value,
+            crop: e.target.crop.value,
+            replace_from: e.target.replace_from.value,
+            replace_to: e.target.replace_to.value
+        }))
+        setTransformStart(true)
+        setIsTransforming(true)
+        setPublicId(imageInfo.public_id)
+        setRenderKey('' + Math.random())
     }
 
     return (
-        <div>
-            <h2 className='text-3xl font-bold'>Text to image</h2>
+        <div className='w-full max-w-[1000px]'>
+            <form action="" method='POST' onSubmit={handleSubmit}>
+                <div className="form-row">
+                    <label className='block text-lg font-semibold' htmlFor="name">Name</label>
+                    <input className='input' type="text" name="name" id="name" />
+                </div>
+                <div className="form-row flex gap-3 mt-3">
+                    <div className='flex-1'>
+                        <label className='block text-lg font-semibold' htmlFor="width">Width</label>
+                        <input className='input' type="number" name="width" id="width" required />
+                    </div>
+                    <div className='flex-1'>
+                        <label className='block text-lg font-semibold' htmlFor="height">Height</label>
+                        <input className='input' type="number" name="height" id="height" required />
+                    </div>
+                </div>
 
-            <div className='mt-5'>
-                <form action="#" id="txt-to-img-form" method='post' onSubmit={handleSubmit}>
-                    <div className="form-row">
-                        <label className='block text-lg font-semibold' htmlFor="prompt">Prompt</label>
+                <div className="form-row mt-3 flex gap-3">
+                    <div className="flex-1">
+                        <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
+                        <select className='input bg-white' name="crop" id="crop">
+                            <option value="">-- Select --</option>
+                            <option value="auto">Auto</option>
+                            <option value="auto_pad">Auto with padding</option>
+                            <option value="crop">Crop</option>
+                            <option value="fill">Fill</option>
+                            <option value="fill_pad">Fill with padding</option>
+                            <option value="fit">Fit</option>
+                            <option value="pad">Pad</option>
+                            <option value="scale">Scale</option>
+                            <option value="thumb">Thumb</option>
+                        </select>
+                    </div>
+                    <div className="flex-1">
                         <div className="flex gap-3 items-center">
-                            <input className='input' type="text" name="prompt" id="prompt" />
-                            <button type="submit" className="btn-primary btn-rounded-0 px-4 self-stretch">Generate</button>
+                            <div className="flex-1">
+                                <label className='block text-lg font-semibold' htmlFor="replace_from">Replace from</label>
+                                <input className='input' type="text" name="replace_from" id="replace_from" />
+                            </div>
+                            <div className="flex-1">
+                                <label className='block text-lg font-semibold' htmlFor="replace_to">Replace to</label>
+                                <input className='input' type="text" name="replace_to" id="replace_to" />
+                            </div>
                         </div>
                     </div>
-                </form>
-                
-                <div className="result mt-5 bg-gray-100 rounded-lg min-h-[300px] flex items-center justify-center">
-                    { !imgUrl ? (
-                        isLoading ?
-                        <Image src='/pulse.svg' width={40} height={0} alt="" /> :
-                        <h4 className='text-xl text-gray-300 select-none'>Output</h4>
-                    ) : (
-                        <Image src={imgUrl} width={400} height={0} sizes='100vw' alt="" />
-                    ) }
                 </div>
-            </div>
+
+                <div className="form-row mt-7 flex gap-5">
+                    <div className='flex-1'>
+                        <h4 className='text-2xl font-bold'>Original</h4>
+                        {uploaded ? (
+                            <div className="relative rounded-lg mt-3 overflow-hidden bg-gray-100 min-h-[300px]">
+                                <button className='w-[40px] h-[40px] flex items-center justify-center bg-red-500 text-white absolute right-3 top-3 rounded-lg hover:bg-red-600' type='button' onClick={() => { setUploaded(false) }}><FontAwesomeIcon icon={faTrashAlt}/></button>
+                                <Image className='w-full rounded-lg' width={0} height={0} sizes='100vw' alt='' src={imageInfo.url}/>
+                            </div>
+                        ) : (
+                            <div className="bg-gray-100 rounded-lg flex flex-col gap-3 items-center justify-center mt-3 h-[300px]">
+                                <CldUploadWidget signatureEndpoint="/api/sign-cloudinary-params" onSuccess={handleSuccess}>
+                                {({ open }) => {
+                                    return (
+                                        <button onClick={() => open()} className='p-7 rounded-lg flex flex-col items-center justify-center text-white gap-2 shadow bg-white' type="button">
+                                            <div className="rounded-lg bg-primary w-[40px] h-[40px] flex items-center justify-center">
+                                                <FontAwesomeIcon icon={faPlus} />
+                                            </div>
+                                        </button>
+                                    )
+                                }}
+                                </CldUploadWidget>
+                                <span className='font-semibold'>Upload Image</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className='flex-1'>
+                        <TransformedImage
+                        publicId={publicId}
+                        transformStart={transformStart}
+                        isTransforming={isTransforming}
+                        imgLoaded={() => {
+                            console.log('Loaded');
+                            setIsTransforming(false);
+                            toast.success('Image transformed')
+                        }}
+                        onError={() => {
+                            setIsTransforming(false)
+                            toast.error('Something went wrong, image not loaded')
+                        }}
+                        renderKey={renderKey}
+                        fillBackground
+                        {...(formValue.crop && { crop: formValue.crop })}
+                        width={formValue.width}
+                        height={formValue.height}
+                        replace={[formValue.replace_from, formValue.replace_to]}
+                        />
+                    </div>
+                </div>
+
+                <div className="form-row mt-10">
+                    <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Replace Object</button>
+                </div>
+
+                <ToastContainer/>
+            </form>
         </div>
     )
 }
