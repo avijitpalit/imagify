@@ -22,8 +22,7 @@ const Sidebar = () => {
     { title: 'Generative Fill', href: '/generative-fill', icon: faWandMagicSparkles },
     { title: 'Remove Object', href: '/remove-object', icon: faEraser },
     { title: 'Replace Object', href: '/replace-object', icon: faObjectGroup },
-    { title: 'Recolor Image', href: '/recolor-image', icon: faPalette },
-    { title: 'Restore Image', href: '/restore-image', icon: faImage }
+    { title: 'Recolor Object', href: '/recolor-object', icon: faPalette }
   ]
 
   return (
