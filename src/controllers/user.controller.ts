@@ -1,12 +1,27 @@
-import User from "@/models/user.model";
-import { DBConnect } from "@/utils/db";
+'use server'
 
-export const createUser = async (user: CreateUserParams) => {
+import User from "@/models/user.model";
+import connectDB from "@/utils/db";
+import mongoose from "mongoose";
+
+export const createUser = async (user: CreateUserParams | null) => {
     try {
-        await DBConnect()
-        const newUser = await User.create(user)
-        return newUser
+        await connectDB()
+        const newUser = User.create(user)
+        console.log(newUser)
+        // return newUser
     } catch (error) {
         console.log(error)
+    }
+}
+
+export const deleteUser = async (clerkId: string) => {
+    try {
+        await connectDB()
+        const result = User.deleteOne({clerkId})
+        console.log(result)
+        return true
+    } catch (error) {
+        return false
     }
 }

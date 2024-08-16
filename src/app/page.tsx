@@ -1,16 +1,43 @@
 'use client'
 
-import handler from "@/api/users";
+import { createUser } from "@/controllers/user.controller";
 import { useEffect, useState } from "react";
 
 export default function Home() {
     const [users, setUsers] = useState([])
 
     const handleClick = async () => {
-        const response = await fetch('/api/users');
-        const _users = await response.json();
-        setUsers(_users) ;
-        console.log(_users)
+        /* const newUser = await createUser({
+            clerkId: Math.random().toString(),
+            fname: 'Peter',
+            lname: 'Parker',
+            email: `peterparker_${Math.random()}@gmail.com`,
+            avatar: 'avatar url here'
+        }) */
+
+        const user = {
+            clerkId: 'ferge',
+            fname: 'Peter',
+            lname: 'Parker',
+            email: `peterparker_ferge@gmail.com`,
+            avatar: 'avatar url here, again'
+        }
+    
+        const x = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                clerkId: 'ferge',
+                fname: 'Peter',
+                lname: 'Parker',
+                email: `peterparker_ferge@gmail.com`,
+                avatar: 'avatar url here, again'
+            })
+        })
+
+        console.log(x)
     }
 
     return (

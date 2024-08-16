@@ -1,7 +1,7 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
-import { createUser } from '@/controllers/user.controller'
+import { createUser, deleteUser } from '@/controllers/user.controller'
 import { NextResponse } from 'next/server'
 
 type ClerkUserData = {
@@ -10,10 +10,9 @@ type ClerkUserData = {
     last_name: string;
     email_addresses: { email_address: string }[];
     image_url: string;
-  };
+};
 
 export async function POST(req: Request) {
-
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
@@ -63,15 +62,11 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if (evt.type === 'user.updated') {
-    console.log('User updated')
-    console.log(evt.data);
-    console.log(typeof evt.data);
+
   }
 
   if (evt.type === 'user.created') {
-    console.log(evt.data);
-    console.log(typeof evt.data);
-    /* const {id, first_name, last_name, email_addresses, image_url}: ClerkUserData = evt.data
+    const {id, first_name, last_name, email_addresses, image_url} = evt.data as ClerkUserData
     const user = {
         clerkId: id,
         fname: first_name,
@@ -79,13 +74,15 @@ export async function POST(req: Request) {
         email: email_addresses[0].email_address,
         avatar: image_url
     }
-    const newUser = await createUser(user) */
-    // return NextResponse.json({done: true, user: newUser})
-    return NextResponse.json({done: true})
+
+    const newUser = await createUser(user)
+    return NextResponse.json({done: true, user: newUser})
   }
 
   if (evt.type === 'user.deleted') {
     console.log('User deleted, userId:', evt.data.id)
+    const done = deleteUser(evt.data.id!)
+    return NextResponse.json({done})
   }
 
   console.log(`Webhook with and ID of ${id} and type of ${eventType}`)
