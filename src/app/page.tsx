@@ -7,37 +7,16 @@ export default function Home() {
     const [users, setUsers] = useState([])
 
     const handleClick = async () => {
-        /* const newUser = await createUser({
-            clerkId: Math.random().toString(),
-            fname: 'Peter',
-            lname: 'Parker',
-            email: `peterparker_${Math.random()}@gmail.com`,
-            avatar: 'avatar url here'
-        }) */
-
         const user = {
-            clerkId: 'ferge',
+            clerkId: 'rthrtjrt',
             fname: 'Peter',
             lname: 'Parker',
-            email: `peterparker_ferge@gmail.com`,
-            avatar: 'avatar url here, again'
+            email: `peterparker_rthrtjrt@gmail.com`,
+            avatar: 'avatar url here xxx'
         }
     
-        const x = await fetch('/api/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                clerkId: 'ferge',
-                fname: 'Peter',
-                lname: 'Parker',
-                email: `peterparker_ferge@gmail.com`,
-                avatar: 'avatar url here, again'
-            })
-        })
-
-        console.log(x)
+        const newUser = await createUser(user)
+        console.log(newUser)
     }
 
     return (

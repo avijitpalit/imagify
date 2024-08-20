@@ -12,7 +12,12 @@ if(!cached) cached = global.mongoose = {conn: null, promise: null}
 const connectDB = async () => {
     if(cached.conn) return cached.conn
     if(!cached.promise){
-        const opts = {dbName: 'imagify', bufferCommands: false}
+        const opts = {
+            dbName: 'imagify',
+            bufferCommands: false,
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        }
         cached.promise = mongoose.connect(CONN_STR, opts).then(mongoose => { return mongoose })
     }
     cached.conn = await cached.promise

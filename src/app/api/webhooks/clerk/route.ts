@@ -66,6 +66,7 @@ export async function POST(req: Request) {
   }
 
   if (evt.type === 'user.created') {
+    console.log('User created')
     const {id, first_name, last_name, email_addresses, image_url} = evt.data as ClerkUserData
     const user = {
         clerkId: id,
@@ -74,15 +75,14 @@ export async function POST(req: Request) {
         email: email_addresses[0].email_address,
         avatar: image_url
     }
-
-    const newUser = await createUser(user)
-    return NextResponse.json({done: true, user: newUser})
+    await createUser(user)
+    // return NextResponse.json({done: true, user: newUser})
   }
 
   if (evt.type === 'user.deleted') {
     console.log('User deleted, userId:', evt.data.id)
-    const done = deleteUser(evt.data.id!)
-    return NextResponse.json({done})
+    const done = await deleteUser(evt.data.id!)
+    // return NextResponse.json({done})
   }
 
   console.log(`Webhook with and ID of ${id} and type of ${eventType}`)
