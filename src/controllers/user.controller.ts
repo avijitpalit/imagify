@@ -26,3 +26,15 @@ export const deleteUser = async (clerkId: string) => {
         return false
     }
 }
+
+export const getUserIdByClerkId = async (clerkId: string) => {
+    try {
+        await connectDB()
+        const user = await User.findOne({clerkId})
+        console.log(user)
+        return user
+    } catch (error) {
+        console.log(error)
+        return false
+    }
+}

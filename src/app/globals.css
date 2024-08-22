@@ -51,6 +51,9 @@ body {
   .btn-rounded-0{ @apply rounded-lg }
   .btn-primary:hover{ background: var(--color-primary-dark); }
   .btn-primary:focus{ box-shadow: 0 0 0 4px #695CFE55; background: var(--color-primary-dark); }
+  .btn-green{ @apply text-white rounded-full bg-green; }
+  .btn-green:hover{ background: var(--color-green-dark); }
+  .btn-green:focus{ box-shadow: 0 0 0 4px #2ECC7155; background: var(--color-green-dark); }
   .shimmer{
     @apply absolute inset-0 before:absolute before:inset-0 before:w-full before:h-full before:bg-gradient-to-r before:from-transparent before:via-black/5 before:to-transparent before:animate-[shimmer_1s_infinite] before:rounded-lg overflow-hidden bg-gray-100 rounded-lg
   }
@@ -62,3 +65,4 @@ body {
 
 .bg-primary{ background: var(--color-primary); }
 .bg-secondary{ background: var(--color-secondary); }
+.bg-green{ background: var(--color-green); }

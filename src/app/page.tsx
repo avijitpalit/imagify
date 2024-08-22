@@ -1,13 +1,16 @@
 'use client'
 
-import { createUser } from "@/controllers/user.controller";
+import { createUser, getUserIdByClerkId } from "@/controllers/user.controller";
 import { useEffect, useState } from "react";
+import { useClerk } from '@clerk/clerk-react';
+import { createImage } from "@/controllers/image.controller";
 
 export default function Home() {
     const [users, setUsers] = useState([])
+    const { user } = useClerk();
 
     const handleClick = async () => {
-        const user = {
+        /* const user = {
             clerkId: 'rthrtjrt',
             fname: 'Peter',
             lname: 'Parker',
@@ -16,7 +19,15 @@ export default function Home() {
         }
     
         const newUser = await createUser(user)
-        console.log(newUser)
+        console.log(newUser) */
+
+        // await getUserIdByClerkId('user_2kuxejCMsr2Q2VRAxCaeDZDWGo5')
+        // console.log(user?.id);
+
+        // await createImage('some name', 'image public path here', 'user_2kuxejCMsr2Q2VRAxCaeDZDWGo5')
+        // console.log('image created')
+
+        
     }
 
     return (

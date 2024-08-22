@@ -93,7 +93,7 @@ export default function Page() {
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
-    const [publicId, setPublicId] = useState<String>('')
+    const [publicId, setPublicId] = useState<string>('')
     const initialFormValue = {
         name: '',
         width: 0,
@@ -147,6 +147,18 @@ export default function Page() {
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
         setRenderKey('' + Math.random())
+    }
+
+    const handleSave = async () => {
+        console.log('Save clicked')
+        const path = getCldImageUrl({
+            src: publicId,
+            fillBackground: true,
+            crop: formValue.crop,
+            width: formValue.width,
+            height: formValue.height
+        })
+        console.log(path)
     }
 
     /* const handleDownload = (e: any) => {
@@ -276,8 +288,9 @@ export default function Page() {
                     </div>
                 </div>
 
-                <div className="form-row mt-10">
+                <div className="form-row mt-10 flex gap-3">
                     <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Apply Transform</button>
+                    <button type="button" disabled={uploaded ? false : true} className='btn btn-green w-[300px] transition disabled:opacity-50' onClick={handleSave}>Save</button>
                 </div>
 
                 <div className="form-row mt-10 hidden">
