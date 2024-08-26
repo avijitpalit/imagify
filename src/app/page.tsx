@@ -10,24 +10,8 @@ export default function Home() {
     const { user } = useClerk();
 
     const handleClick = async () => {
-        /* const user = {
-            clerkId: 'rthrtjrt',
-            fname: 'Peter',
-            lname: 'Parker',
-            email: `peterparker_rthrtjrt@gmail.com`,
-            avatar: 'avatar url here xxx'
-        }
-    
-        const newUser = await createUser(user)
-        console.log(newUser) */
-
-        // await getUserIdByClerkId('user_2kuxejCMsr2Q2VRAxCaeDZDWGo5')
-        // console.log(user?.id);
-
-        // await createImage('some name', 'image public path here', 'user_2kuxejCMsr2Q2VRAxCaeDZDWGo5')
-        // console.log('image created')
-
-        
+        const r = await createImage('test', 'path here', 'user_2kuxejCMsr2Q2VRAxCaeDZDWGo5', 'generative_fill')
+        console.log(r)
     }
 
     return (

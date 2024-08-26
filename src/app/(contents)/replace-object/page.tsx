@@ -9,18 +9,36 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TransformedImage from '@/components/TransformedImage';
 import { initialImageInfo } from '@/utils/helper';
+import { useClerk } from '@clerk/clerk-react';
+import { createImage } from '@/controllers/image.controller';
+
+interface FormValue {
+    name: string,
+    width: number,
+    height: number,
+    crop: CropOptions,
+    ratio_1: number,
+    ratio_2: number,
+    replace_from: string,
+    replace_to: string
+}
 
 const Page = () => {
     const [imageInfo, setImageInfo] = useState(initialImageInfo)
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
-    const [publicId, setPublicId] = useState<String>('')
-    const initialFormValue = {
+    const [publicId, setPublicId] = useState('')
+    const { user } = useClerk();
+    const [cropEnabled, setCropEnabled] = useState(false)
+    const [saveEnabled, setSaveEnabled] = useState(false)
+    const initialFormValue: FormValue = {
         name: '',
         width: 0,
         height: 0,
-        crop: '',
+        crop: 'auto',
+        ratio_1: 0,
+        ratio_2: 0,
         replace_from: '',
         replace_to: ''
     }
@@ -42,12 +60,28 @@ const Page = () => {
             height: e.target.height.value,
             crop: e.target.crop.value,
             replace_from: e.target.replace_from.value,
-            replace_to: e.target.replace_to.value
+            replace_to: e.target.replace_to.value,
+            ...(e.target.crop.value == 'crop' && { aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}` })
         }))
         setTransformStart(true)
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
         setRenderKey('' + Math.random())
+    }
+
+    const handleSave = async () => {
+        const path = getCldImageUrl({
+            src: publicId,
+            crop: formValue.crop,
+            width: formValue.width,
+            height: formValue.height,
+            replace: [formValue.replace_from, formValue.replace_to],
+            ...(formValue.crop == 'crop' && {aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}`})
+        })
+        const currentUserId = user?.id
+        const r = await createImage(formValue.name, path, currentUserId!, 'replace_object')
+        if(r) toast.success('Image saved')
+        else toast.error('Something went wrong')
     }
 
     return (

@@ -7,3 +7,5 @@ declare type CreateUserParams = {
     email: string;
     avatar: string;
 }
+
+declare type CropOptions = "fill" | "fit" | "crop" | "scale" | "thumb" | "auto" | "pad";

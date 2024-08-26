@@ -1,5 +1,7 @@
 'use client'
 
+import TransformedImage from '@/components/TransformedImage';
+import { createImage } from '@/controllers/image.controller';
 import { faDownload, faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, CldUploadWidget, getCldImageUrl } from 'next-cloudinary';
@@ -7,82 +9,39 @@ import Image from 'next/image';
 import React, { useState } from 'react'
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useClerk } from '@clerk/clerk-react';
+
+interface FormValue {
+    name: string,
+    width: number,
+    height: number,
+    crop: CropOptions,
+    ratio_1: number,
+    ratio_2: number,
+    remove: string
+}
 
 const initialImageInfo = {
     public_id: '',
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, renderKey, ...transformProperties }: any) => {
-    const download = (url: string, filename: string) => {
-        if (!url) {
-            throw new Error("Resource URL not provided! You need to provide one");
-        }
-        
-        fetch(url)
-            .then((response) => response.blob())
-            .then((blob) => {
-            const blobURL = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = blobURL;
-        
-            if (filename && filename.length)
-                a.download = `${filename.replace(" ", "_")}.png`;
-            document.body.appendChild(a);
-            a.click();
-            })
-            .catch((error) => console.log({ error }));
-    };
-
-    const handleDownload = (e: any) => {
-        e.preventDefault()
-        download(getCldImageUrl({
-            src: publicId,
-            ...transformProperties
-        }), 'transformed-image')
-    }
-
-    return (
-        <div className='h-full flex flex-col'>
-            <h4 className='text-2xl font-bold'>Transformed</h4>
-            {transformStart && publicId ? (
-                <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg relative'>
-                    <a onClick={handleDownload} href="#" className="p-4 rounded-lg bg-[var(--color-green)] w-[40px] h-[40px] flex items-center justify-center absolute right-3 top-3 hover:bg-[var(--color-green-dark)]">
-                        <FontAwesomeIcon icon={faDownload} className='text-white'/>
-                    </a>
-                    <CldImage
-                    key={renderKey}
-                    src={publicId}
-                    alt='Transformed image'
-                    className='rounded-lg'
-                    onLoadStart={() => { console.log('load started') }}
-                    onLoad={() => {
-                        imgLoaded()
-                    }}
-                    onError={onError}
-                    {...transformProperties}
-                    />
-
-                    {isTransforming && <div className="shimmer"></div>}
-                </div>
-            ) : (     
-                <div className="bg-gray-100 rounded-lg flex items-center justify-center mt-3 h-[300px] grow"></div>
-            )}
-        </div>
-    )
-}
-
 const Page = () => {
+    const { user } = useClerk();
     const [imageInfo, setImageInfo] = useState(initialImageInfo)
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
-    const [publicId, setPublicId] = useState<String>('')
-    const initialFormValue = {
+    const [publicId, setPublicId] = useState('')
+    const [cropEnabled, setCropEnabled] = useState(false)
+    const [saveEnabled, setSaveEnabled] = useState(false)
+    const initialFormValue: FormValue = {
         name: '',
         width: 0,
         height: 0,
-        crop: '',
+        crop: 'auto',
+        ratio_1: 0,
+        ratio_2: 0,
         remove: ''
     }
     const [formValue, setFormValue] = useState(initialFormValue)
@@ -102,12 +61,28 @@ const Page = () => {
             width: e.target.width.value,
             height: e.target.height.value,
             crop: e.target.crop.value,
-            remove: e.target.remove.value
+            remove: e.target.remove.value,
+            ...(e.target.crop.value == 'crop' && { aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}` })
         }))
         setTransformStart(true)
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
         setRenderKey('' + Math.random())
+    }
+
+    const handleSave = async () => {
+        const path = getCldImageUrl({
+            src: publicId,
+            crop: formValue.crop,
+            width: formValue.width,
+            height: formValue.height,
+            remove: formValue.remove,
+            ...(formValue.crop == 'crop' && {aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}`})
+        })
+        const currentUserId = user?.id
+        const r = await createImage(formValue.name, path, currentUserId!, 'remove_object')
+        if(r) toast.success('Image saved')
+        else toast.error('Something went wrong')
     }
 
     return (
@@ -131,23 +106,38 @@ const Page = () => {
                 <div className="form-row mt-3 flex gap-3">
                     <div className="flex-1">
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
-                        <select className='input bg-white' name="crop" id="crop">
+                        <select className='input bg-white' name="crop" id="crop" onChange={(e: any) => {
+                            setCropEnabled(e.target.value == 'crop' ? true : false)
+                        }}>
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
-                            <option value="auto_pad">Auto with padding</option>
-                            <option value="crop">Crop</option>
                             <option value="fill">Fill</option>
-                            <option value="fill_pad">Fill with padding</option>
+                            <option value="crop">Crop</option>
+                            <option value="thumb">Thumb</option>
+                            <option value="scale">Scale</option>
                             <option value="fit">Fit</option>
                             <option value="pad">Pad</option>
-                            <option value="scale">Scale</option>
-                            <option value="thumb">Thumb</option>
                         </select>
                     </div>
-                    <div className="flex-1">
-                        <label className='block text-lg font-semibold' htmlFor="remove">Object to Remove</label>
-                        <input className='input' type="text" name="remove" id="remove" required />
-                    </div>
+                    {cropEnabled && (
+                        <div className="flex-1">
+                            <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
+                            <div className="flex gap-3 items-center">
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_1" id="ratio_1" />
+                                </div>
+                                <span><b>:</b></span>
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_2" id="ratio_2" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="form-row mt-3">
+                    <label className='block text-lg font-semibold' htmlFor="remove">Object to Remove</label>
+                    <input className='input' type="text" name="remove" id="remove" required />
                 </div>
 
                 <div className="form-row mt-7 flex gap-5">
@@ -183,6 +173,7 @@ const Page = () => {
                         imgLoaded={() => {
                             console.log('Loaded');
                             setIsTransforming(false);
+                            setSaveEnabled(true)
                             toast.success('Image transformed')
                         }}
                         onError={() => {
@@ -199,8 +190,9 @@ const Page = () => {
                     </div>
                 </div>
 
-                <div className="form-row mt-10">
+                <div className="form-row mt-10 flex gap-3">
                     <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Remove Object</button>
+                    <button type="button" disabled={saveEnabled ? false : true} className='btn btn-green w-[300px] transition disabled:opacity-50' onClick={handleSave}>Save</button>
                 </div>
 
                 <ToastContainer/>

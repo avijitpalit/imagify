@@ -7,108 +7,44 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useClerk } from '@clerk/clerk-react';
+import { createImage } from '@/controllers/image.controller';
+import TransformedImage from '@/components/TransformedImage';
+
+declare interface FormValue {
+    name: string,
+    width: number,
+    height: number,
+    crop: CropOptions,
+    ratio_1: number,
+    ratio_2: number
+}
 
 const initialImageInfo = {
     public_id: '',
     url: ''
 }
 
-const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, renderKey, ...transformProperties }: any) => {
-    const [prevPublicId, setPrevPublicId] = useState('')
-    // const [prevTransformProperties, setPrevTransformProperties] = useState<any>()
-    /* useEffect(() => {
-      console.log(transformProperties, prevTransformProperties)
-    }, [prevTransformProperties, transformProperties]) */
-    /* useEffect(() => {
-        console.log('transformStart changed', transformStart)
-    }, [transformStart]) */
-
-    const download = (url: string, filename: string) => {
-        if (!url) {
-            throw new Error("Resource URL not provided! You need to provide one");
-        }
-        
-        fetch(url)
-            .then((response) => response.blob())
-            .then((blob) => {
-            const blobURL = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = blobURL;
-        
-            if (filename && filename.length)
-                a.download = `${filename.replace(" ", "_")}.png`;
-            document.body.appendChild(a);
-            a.click();
-            })
-            .catch((error) => console.log({ error }));
-    };
-
-    const handleDownload = (e: any) => {
-        e.preventDefault()
-        download(getCldImageUrl({
-            src: publicId,
-            ...transformProperties
-        }), 'transformed-image')
-    }
-
-    return (
-        <div className='h-full flex flex-col'>
-            <h4 className='text-2xl font-bold'>Transformed</h4>
-            {transformStart && publicId ? (
-                <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg relative'>
-                    <a onClick={handleDownload} href="#" className="p-4 rounded-lg bg-[var(--color-green)] w-[40px] h-[40px] flex items-center justify-center absolute right-3 top-3 hover:bg-[var(--color-green-dark)]">
-                        <FontAwesomeIcon icon={faDownload} className='text-white'/>
-                    </a>
-                    <CldImage
-                    key={renderKey}
-                    src={publicId}
-                    // width='960'
-                    // height='640'
-                    alt='Transformed image'
-                    className='rounded-lg'
-                    onLoadStart={() => { console.log('load started') }}
-                    onLoad={() => {
-                        setPrevPublicId(publicId)
-                        // setPrevTransformProperties(transformProperties)
-                        imgLoaded()
-                    }}
-                    onError={onError}
-                    // sizes='100vw'
-                    // fillBackground
-                    // crop='fit'
-                    {...transformProperties}
-                    />
-                    {/* {isTransforming && publicId != prevPublicId && <div className="shimmer"></div>} */}
-                    {isTransforming && <div className="shimmer"></div>}
-                </div>
-            ) : (     
-                <div className="bg-gray-100 rounded-lg flex items-center justify-center mt-3 h-[300px] grow"></div>
-            )}
-        </div>
-    )
-}
-
 export default function Page() {
+    const { user } = useClerk();
     const [imageInfo, setImageInfo] = useState(initialImageInfo)
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
+    const [cropEnabled, setCropEnabled] = useState(false)
+    const [saveEnabled, setSaveEnabled] = useState(false)
     const [publicId, setPublicId] = useState<string>('')
-    const initialFormValue = {
+    
+    const initialFormValue: FormValue = {
         name: '',
         width: 0,
         height: 0,
-        crop: '',
+        crop: 'auto',
         ratio_1: 0,
         ratio_2: 0
     }
     const [formValue, setFormValue] = useState(initialFormValue)
     const [renderKey, setRenderKey] = useState('')
-
-    useEffect(() => {
-        console.log('Uploaded', uploaded);
-        console.log('transformStart', transformStart);
-    }, [uploaded, transformStart])
 
     const handleSuccess = (results: any) => {
         setImageInfo(results.info)
@@ -116,12 +52,12 @@ export default function Page() {
         setPublicId('')
     }
 
-    const handleTransform = () => {
+    /* const handleTransform = () => {
         setTransformStart(true)
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
         setRenderKey('' + Math.random())
-    }
+    } */
 
     /* const handleInputChange = (e: any) => {
         const {name, value} = e.target
@@ -140,8 +76,12 @@ export default function Page() {
             width: e.target.width.value,
             height: e.target.height.value,
             crop: e.target.crop.value,
-            ratio_1: e.target.ratio_1.value,
-            ratio_2: e.target.ratio_2.value
+            ...(
+                e.target.crop.value == 'crop' && {
+                    ratio_1: e.target.ratio_1.value,
+                    ratio_2: e.target.ratio_2.value
+                }
+            )
         }))
         setTransformStart(true)
         setIsTransforming(true)
@@ -150,42 +90,25 @@ export default function Page() {
     }
 
     const handleSave = async () => {
-        console.log('Save clicked')
         const path = getCldImageUrl({
             src: publicId,
             fillBackground: true,
             crop: formValue.crop,
             width: formValue.width,
-            height: formValue.height
+            height: formValue.height,
+            ...(formValue.crop == 'crop' && {
+                aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}`
+            })
         })
-        console.log(path)
+        const currentUserId = user?.id
+        const r = await createImage(formValue.name, path, currentUserId!, 'generative_fill')
+        if(r) toast.success('Image saved')
+        else toast.error('Something went wrong')
     }
 
-    /* const handleDownload = (e: any) => {
-        e.preventDefault()
-        console.log(imageInfo)
-        //const url = getCldImageUrl()
-    } */
-
-    /* const download = (url: string, filename: string) => {
-        if (!url) {
-            throw new Error("Resource URL not provided! You need to provide one");
-        }
-        
-        fetch(url)
-            .then((response) => response.blob())
-            .then((blob) => {
-            const blobURL = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = blobURL;
-        
-            if (filename && filename.length)
-                a.download = `${filename.replace(" ", "_")}.png`;
-            document.body.appendChild(a);
-            a.click();
-            })
-            .catch((error) => console.log({ error }));
-    }; */
+    const handleCropChange = (e: any) => {
+        setCropEnabled(e.target.value == 'crop' ? true : false)
+    }
 
     return (
         <div className='w-full max-w-[1000px]'>
@@ -209,31 +132,31 @@ export default function Page() {
                 <div className="form-row mt-3 flex gap-3">
                     <div className="flex-1">
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
-                        <select className='input bg-white' name="crop" id="crop">
+                        <select className='input bg-white' name="crop" id="crop" onChange={handleCropChange}>
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
-                            <option value="auto_pad">Auto with padding</option>
-                            <option value="crop">Crop</option>
                             <option value="fill">Fill</option>
-                            <option value="fill_pad">Fill with padding</option>
+                            <option value="crop">Crop</option>
+                            <option value="thumb">Thumb</option>
+                            <option value="scale">Scale</option>
                             <option value="fit">Fit</option>
                             <option value="pad">Pad</option>
-                            <option value="scale">Scale</option>
-                            <option value="thumb">Thumb</option>
                         </select>
                     </div>
-                    <div className="flex-1">
-                        <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
-                        <div className="flex gap-3 items-center">
-                            <div className="flex-1">
-                                <input className='input' type="number" name="ratio_1" id="ratio_1" />
-                            </div>
-                            <span><b>:</b></span>
-                            <div className="flex-1">
-                                <input className='input' type="number" name="ratio_2" id="ratio_2" />
+                    {cropEnabled && (
+                        <div className="flex-1">
+                            <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
+                            <div className="flex gap-3 items-center">
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_1" id="ratio_1" />
+                                </div>
+                                <span><b>:</b></span>
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_2" id="ratio_2" />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="form-row mt-7 flex gap-5">
@@ -267,17 +190,16 @@ export default function Page() {
                         transformStart={transformStart}
                         isTransforming={isTransforming}
                         imgLoaded={() => {
-                            console.log('Loaded');
                             setIsTransforming(false);
+                            setSaveEnabled(true)
                             toast.success('Image transformed')
-                            // setTransformStart(false)
                         }}
                         onError={() => {
                             setIsTransforming(false)
                             toast.error('Something went wrong, image not loaded')
                         }}
                         renderKey={renderKey}
-                        {...((formValue.ratio_1 || formValue.ratio_2) != 0 && {
+                        {...((formValue.crop == 'crop' && formValue.ratio_1 || formValue.ratio_2) != 0 && {
                             aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`
                         })}
                         fillBackground
@@ -290,28 +212,10 @@ export default function Page() {
 
                 <div className="form-row mt-10 flex gap-3">
                     <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Apply Transform</button>
-                    <button type="button" disabled={uploaded ? false : true} className='btn btn-green w-[300px] transition disabled:opacity-50' onClick={handleSave}>Save</button>
-                </div>
-
-                <div className="form-row mt-10 hidden">
-                    <button type="button" className='btn btn-primary w-full transition disabled:opacity-50' onClick={() => { console.log(formValue) }}>Test</button>
+                    <button type="button" disabled={saveEnabled ? false : true} className='btn btn-green w-[300px] transition disabled:opacity-50' onClick={handleSave}>Save</button>
                 </div>
 
                 <ToastContainer/>
-
-                {/* <CldImage
-                    src='sample' // Use this sample image or upload your own via the Media Explorer
-                    width='200'
-                    height='200'
-                    alt=''
-                    sizes='100vw'
-                    className='mt-5'
-                    onLoad={() => {
-                        console.log('Loaded');
-                        // setIsTransforming(false)
-                    }}
-                    fillBackground
-                /> */}
             </form>
             <div className="py-5"></div>
         </div>
