@@ -10,6 +10,7 @@ import React, { useState } from 'react'
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useClerk } from '@clerk/clerk-react';
+import { initialImageInfo } from '@/utils/helper';
 
 interface FormValue {
     name: string,
@@ -19,11 +20,6 @@ interface FormValue {
     ratio_1: number,
     ratio_2: number,
     remove: string
-}
-
-const initialImageInfo = {
-    public_id: '',
-    url: ''
 }
 
 const Page = () => {
@@ -181,8 +177,10 @@ const Page = () => {
                             toast.error('Something went wrong, image not loaded')
                         }}
                         renderKey={renderKey}
-                        fillBackground
                         {...(formValue.crop && { crop: formValue.crop })}
+                        {...((formValue.crop == 'crop' && formValue.ratio_1 || formValue.ratio_2) != 0 && {
+                            aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`
+                        })}
                         width={formValue.width}
                         height={formValue.height}
                         remove={formValue.remove}

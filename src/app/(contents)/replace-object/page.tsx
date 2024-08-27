@@ -105,30 +105,44 @@ const Page = () => {
                 <div className="form-row mt-3 flex gap-3">
                     <div className="flex-1">
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
-                        <select className='input bg-white' name="crop" id="crop">
+                        <select className='input bg-white' name="crop" id="crop"
+                        onChange={(e: any) => {
+                            setCropEnabled(e.target.value == 'crop' ? true : false)
+                        }}>
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
-                            <option value="auto_pad">Auto with padding</option>
-                            <option value="crop">Crop</option>
                             <option value="fill">Fill</option>
-                            <option value="fill_pad">Fill with padding</option>
+                            <option value="crop">Crop</option>
+                            <option value="thumb">Thumb</option>
+                            <option value="scale">Scale</option>
                             <option value="fit">Fit</option>
                             <option value="pad">Pad</option>
-                            <option value="scale">Scale</option>
-                            <option value="thumb">Thumb</option>
                         </select>
                     </div>
-                    <div className="flex-1">
-                        <div className="flex gap-3 items-center">
-                            <div className="flex-1">
-                                <label className='block text-lg font-semibold' htmlFor="replace_from">Replace from</label>
-                                <input className='input' type="text" name="replace_from" id="replace_from" />
-                            </div>
-                            <div className="flex-1">
-                                <label className='block text-lg font-semibold' htmlFor="replace_to">Replace to</label>
-                                <input className='input' type="text" name="replace_to" id="replace_to" />
+                    {cropEnabled && (
+                        <div className="flex-1">
+                            <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
+                            <div className="flex gap-3 items-center">
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_1" id="ratio_1" />
+                                </div>
+                                <span><b>:</b></span>
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_2" id="ratio_2" />
+                                </div>
                             </div>
                         </div>
+                    )}
+                </div>
+
+                <div className="form-row mt-3 flex gap-3">
+                    <div className="flex-1">
+                        <label className='block text-lg font-semibold' htmlFor="replace_from">Replace from</label>
+                        <input className='input' type="text" name="replace_from" id="replace_from" />
+                    </div>
+                    <div className="flex-1">
+                        <label className='block text-lg font-semibold' htmlFor="replace_to">Replace to</label>
+                        <input className='input' type="text" name="replace_to" id="replace_to" />
                     </div>
                 </div>
 
@@ -165,6 +179,7 @@ const Page = () => {
                         imgLoaded={() => {
                             console.log('Loaded');
                             setIsTransforming(false);
+                            setSaveEnabled(true)
                             toast.success('Image transformed')
                         }}
                         onError={() => {
@@ -172,8 +187,10 @@ const Page = () => {
                             toast.error('Something went wrong, image not loaded')
                         }}
                         renderKey={renderKey}
-                        fillBackground
                         {...(formValue.crop && { crop: formValue.crop })}
+                        {...((formValue.crop == 'crop' && formValue.ratio_1 || formValue.ratio_2) != 0 && {
+                            aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`
+                        })}
                         width={formValue.width}
                         height={formValue.height}
                         replace={[formValue.replace_from, formValue.replace_to]}
@@ -181,8 +198,9 @@ const Page = () => {
                     </div>
                 </div>
 
-                <div className="form-row mt-10">
+                <div className="form-row mt-10 flex gap-3">
                     <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Replace Object</button>
+                    <button type="button" disabled={saveEnabled ? false : true} className='btn btn-green w-[300px] transition disabled:opacity-50' onClick={handleSave}>Save</button>
                 </div>
 
                 <ToastContainer/>

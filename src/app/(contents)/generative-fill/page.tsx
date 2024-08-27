@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useClerk } from '@clerk/clerk-react';
 import { createImage } from '@/controllers/image.controller';
 import TransformedImage from '@/components/TransformedImage';
+import { initialImageInfo } from '@/utils/helper';
 
 declare interface FormValue {
     name: string,
@@ -18,11 +19,6 @@ declare interface FormValue {
     crop: CropOptions,
     ratio_1: number,
     ratio_2: number
-}
-
-const initialImageInfo = {
-    public_id: '',
-    url: ''
 }
 
 export default function Page() {

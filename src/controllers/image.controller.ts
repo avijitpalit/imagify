@@ -10,7 +10,6 @@ const createImage = async (name: string, path: string, clerkId: string, cType: s
         const user = await User.findOne({clerkId})
         if(!user) throw 'User not found'
         const newImage = await Img.create({name, path, conversionType: cType, userId: user})
-        console.log(newImage)
         return true
     } catch (error) {
         console.log(error)

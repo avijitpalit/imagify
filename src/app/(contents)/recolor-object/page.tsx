@@ -9,18 +9,36 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TransformedImage from '@/components/TransformedImage';
 import { initialImageInfo } from '@/utils/helper';
+import { useClerk } from '@clerk/clerk-react';
+import { createImage } from '@/controllers/image.controller';
+
+interface FormValue {
+    name: string,
+    width: number,
+    height: number,
+    crop: CropOptions,
+    ratio_1: number,
+    ratio_2: number,
+    object: string,
+    color: string
+}
 
 const Page = () => {
     const [imageInfo, setImageInfo] = useState(initialImageInfo)
     const [transformStart, setTransformStart] = useState(false)
     const [isTransforming, setIsTransforming] = useState(false)
     const [uploaded, setUploaded] = useState(false)
-    const [publicId, setPublicId] = useState<String>('')
-    const initialFormValue = {
+    const [publicId, setPublicId] = useState('')
+    const { user } = useClerk();
+    const [cropEnabled, setCropEnabled] = useState(false)
+    const [saveEnabled, setSaveEnabled] = useState(false)
+    const initialFormValue: FormValue = {
         name: '',
         width: 0,
         height: 0,
-        crop: '',
+        crop: 'auto',
+        ratio_1: 0,
+        ratio_2: 0,
         object: '',
         color: ''
     }
@@ -42,12 +60,28 @@ const Page = () => {
             height: e.target.height.value,
             crop: e.target.crop.value,
             object: e.target.object.value,
-            color: e.target.color.value
+            color: e.target.color.value,
+            ...(e.target.crop.value == 'crop' && { aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}` })
         }))
         setTransformStart(true)
         setIsTransforming(true)
         setPublicId(imageInfo.public_id)
         setRenderKey('' + Math.random())
+    }
+
+    const handleSave = async () => {
+        const path = getCldImageUrl({
+            src: publicId,
+            crop: formValue.crop,
+            width: formValue.width,
+            height: formValue.height,
+            recolor: [formValue.object, formValue.color],
+            ...(formValue.crop == 'crop' && {aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}`})
+        })
+        const currentUserId = user?.id
+        const r = await createImage(formValue.name, path, currentUserId!, 'recolor_object')
+        if(r) toast.success('Image saved')
+        else toast.error('Something went wrong')
     }
 
     return (
@@ -71,30 +105,44 @@ const Page = () => {
                 <div className="form-row mt-3 flex gap-3">
                     <div className="flex-1">
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
-                        <select className='input bg-white' name="crop" id="crop">
+                        <select className='input bg-white' name="crop" id="crop"
+                        onChange={(e: any) => {
+                            setCropEnabled(e.target.value == 'crop' ? true : false)
+                        }}>
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
-                            <option value="auto_pad">Auto with padding</option>
-                            <option value="crop">Crop</option>
                             <option value="fill">Fill</option>
-                            <option value="fill_pad">Fill with padding</option>
+                            <option value="crop">Crop</option>
+                            <option value="thumb">Thumb</option>
+                            <option value="scale">Scale</option>
                             <option value="fit">Fit</option>
                             <option value="pad">Pad</option>
-                            <option value="scale">Scale</option>
-                            <option value="thumb">Thumb</option>
                         </select>
                     </div>
-                    <div className="flex-1">
-                        <div className="flex gap-3 items-center">
-                            <div className="flex-1">
-                                <label className='block text-lg font-semibold' htmlFor="object">Object</label>
-                                <input className='input' type="text" name="object" id="object" />
-                            </div>
-                            <div className="flex-1">
-                                <label className='block text-lg font-semibold' htmlFor="color">Color</label>
-                                <input className='input' type="text" name="color" id="color" />
+                    {cropEnabled && (
+                        <div className="flex-1">
+                            <label className='block text-lg font-semibold' htmlFor="ratio_1">Aspect Ratio</label>
+                            <div className="flex gap-3 items-center">
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_1" id="ratio_1" />
+                                </div>
+                                <span><b>:</b></span>
+                                <div className="flex-1">
+                                    <input className='input' type="number" name="ratio_2" id="ratio_2" />
+                                </div>
                             </div>
                         </div>
+                    )}
+                </div>
+
+                <div className="form-row mt-3 flex gap-3">
+                    <div className="flex-1">
+                        <label className='block text-lg font-semibold' htmlFor="object">Object</label>
+                        <input className='input' type="text" name="object" id="object" />
+                    </div>
+                    <div className="flex-1">
+                        <label className='block text-lg font-semibold' htmlFor="color">Color</label>
+                        <input className='input' type="text" name="color" id="color" />
                     </div>
                 </div>
 
@@ -131,6 +179,7 @@ const Page = () => {
                         imgLoaded={() => {
                             console.log('Loaded');
                             setIsTransforming(false);
+                            setSaveEnabled(true)
                             toast.success('Image transformed')
                         }}
                         onError={() => {
@@ -138,8 +187,10 @@ const Page = () => {
                             toast.error('Something went wrong, image not loaded')
                         }}
                         renderKey={renderKey}
-                        fillBackground
                         {...(formValue.crop && { crop: formValue.crop })}
+                        {...((formValue.crop == 'crop' && formValue.ratio_1 || formValue.ratio_2) != 0 && {
+                            aspectRatio: `${ formValue.ratio_1 }:${ formValue.ratio_2 }`
+                        })}
                         width={formValue.width}
                         height={formValue.height}
                         recolor={[formValue.object, formValue.color]}
@@ -147,8 +198,9 @@ const Page = () => {
                     </div>
                 </div>
 
-                <div className="form-row mt-10">
+                <div className="form-row mt-10 flex gap-3">
                     <button type="submit" disabled={uploaded ? false : true} className='btn btn-primary w-full transition disabled:opacity-50'>Recolor Object</button>
+                    <button type="button" disabled={saveEnabled ? false : true} className='btn btn-green w-[300px] transition disabled:opacity-50' onClick={handleSave}>Save</button>
                 </div>
 
                 <ToastContainer/>
