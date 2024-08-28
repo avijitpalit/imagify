@@ -18,9 +18,11 @@ export const createUser = async (user: CreateUserParams | null) => {
 export const deleteUser = async (clerkId: string) => {
     try {
         await connectDB()
+        const user = await User.findOne({clerkId})
+        if(!user) throw 'User not found'
         const result = await User.deleteOne({clerkId})
         console.log(result)
-        return result.acknowledged
+        return result.deletedCount === 1
     } catch (error) {
         console.log(error)
         return false
