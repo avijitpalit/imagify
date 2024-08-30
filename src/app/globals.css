@@ -45,6 +45,7 @@ body {
   .btn{
     @apply p-4 text-lg font-semibold;
   }
+  .btn-sm{ @apply py-2 px-4 text-base }
   .btn-primary{
     @apply text-white rounded-full bg-primary;
   }
