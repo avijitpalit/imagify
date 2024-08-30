@@ -17,4 +17,19 @@ const createImage = async (name: string, path: string, clerkId: string, cType: s
     }
 }
 
-export {createImage}
+const getImages = async (clerkId: string) => {
+    try {
+        await connectDB()
+        const user = await User.findOne({clerkId})
+        if(!user) throw 'User not found'
+        // console.log(user)
+        const images = await Img.find({userId: '66c466a08e07621e73d04064'}, {userId: 0, __v: 0})
+        // console.log(images)
+        return {done: true, images: JSON.parse(JSON.stringify(images))}
+    } catch (error) {
+        console.log(error)
+        return {done: false}
+    }
+}
+
+export {createImage, getImages}
