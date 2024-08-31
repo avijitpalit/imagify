@@ -3,7 +3,7 @@
 import { createUser, getUserIdByClerkId } from "@/controllers/user.controller";
 import { FC, useEffect, useState } from "react";
 import { useClerk } from '@clerk/clerk-react';
-import { createImage, deleteImage, getImages } from "@/controllers/image.controller";
+import { createImage, deleteImage, getImages, getImagesDemo } from "@/controllers/image.controller";
 import Image from "next/image";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWandMagicSparkles, faEraser, faObjectGroup, faPalette, faMagnifyingGlass, faMagicWandSparkles, faHome, faChevronRight, faChevronLeft, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
@@ -40,7 +40,7 @@ interface ImageType {
     _id: string;
     name: string;
     path: string;
-    conversionType: 'generative_fill' | 'remove_object' | 'replace_object' | 'recolor_object';
+    conversionType: IconKeys;
 }
 
 const Shortcut: FC<IconProps> = ({link, icon, text}) => {
@@ -84,11 +84,11 @@ export default function Home() {
 
     useEffect(() => {
         if(!user?.id) return
-        // const currentUserId = user?.id
+        const currentUserId = user?.id
         setCurrentUserId(user?.id)
         const fetchImages = async () => {
-            // const currentPage = query.get('page') ? parseInt(query.get('page')!) : 1
-            const imagesData = await getImages(user?.id, 1)
+            const currentPage = query.get('page') ? parseInt(query.get('page')!) : 1
+            const imagesData = await getImages(user?.id, currentPage)
             if(imagesData.done){
                 setImages(imagesData.images)
                 setPage({currentPage: imagesData.page!, totalPages: imagesData.totalPages!})
@@ -99,12 +99,25 @@ export default function Home() {
 
     const handlePageChange = async (page: number) => {
         if(!currentUserId) return
-        /* if(page === 1){
+        if(page === 1){
             const params = new URLSearchParams(query.toString())
             params.delete('page')
             router.replace(`?${params.toString()}`, {scroll: false})
-        } else router.push(`?page=${page}`, {scroll: false}) */
+        } else router.push(`?page=${page}`, {scroll: false})
+        // router.push(`?page=${page}`, {scroll: false})
         const imagesData = await getImages(currentUserId!, page)
+        if(imagesData.done){
+            setImages(imagesData.images)
+            setPage((prev: any) => ({
+                ...prev,
+                currentPage: imagesData.page
+            }))
+        }
+    }
+
+    const handleNextClick = async () => {
+        if(!currentUserId) return
+        const imagesData = await getImages(currentUserId!, 2)
         if(imagesData.done){
             setImages(imagesData.images)
             setPage((prev: any) => ({
@@ -140,8 +153,8 @@ export default function Home() {
             </div>
 
             <div className="grid gap-5 grid-cols-3 mt-5">
-                {images.map(image => (
-                    <EditView key={image._id} id={image._id} src={image.path} title={image.name} icon={iconMap[image.conversionType]} deleted={() => onImageDeleted(image._id)} />
+                {images.map((image, index) => (
+                    <EditView key={index.toString()} id={image._id} src={image.path} title={image.name} icon={iconMap[image.conversionType]} deleted={() => onImageDeleted(image._id)} />
                 ))}
             </div>
 

@@ -36,6 +36,23 @@ const getImages = async (clerkId: string, page: number) => {
     }
 }
 
+export const getImagesDemo = async() => {
+    return {done: true, images: [
+        {
+            _id: 'regtht',
+            name: 'test 1',
+            path: 'https://res.cloudinary.com/colbycloud-next-cloudinary/image/upload/e_tint:equalize:80:blue:blueviolet/c_limit,w_1920/f_auto/q_auto/v1/images/turtle?_a=BAVARSBy0',
+            conversionType: 'replace_object'
+        },
+        {
+            _id: 'frget',
+            name: 'test 2',
+            path: 'https://res.cloudinary.com/colbycloud-next-cloudinary/image/upload/b_green/e_gradient_fade/e_gradient_fade:symetric,x_0.5/c_limit,w_1080/f_auto/q_auto/v1/images/turtle?_a=BAVARSBy0',
+            conversionType: 'replace_object'
+        }
+    ]}
+}
+
 const deleteImage = async (id: string) => {
     try {
         await connectDB()
