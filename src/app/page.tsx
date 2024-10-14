@@ -6,12 +6,13 @@ import { useClerk } from '@clerk/clerk-react';
 import { createImage, deleteImage, getImages, getImagesDemo } from "@/controllers/image.controller";
 import Image from "next/image";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWandMagicSparkles, faEraser, faObjectGroup, faPalette, faMagnifyingGlass, faMagicWandSparkles, faHome, faChevronRight, faChevronLeft, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
+import { faWandMagicSparkles, faEraser, faObjectGroup, faPalette, faMagnifyingGlass, faMagicWandSparkles, faHome, faChevronRight, faChevronLeft, faTrashAlt, faFaceFrownOpen } from '@fortawesome/free-solid-svg-icons'
 import Link from "next/link";
 import { IconDefinition, IconProp } from "@fortawesome/fontawesome-svg-core";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { SignedIn } from "@clerk/nextjs";
 
 type IconKeys = 'generative_fill' | 'remove_object' | 'replace_object' | 'recolor_object'
 const iconMap: Record<IconKeys, IconDefinition> = {
@@ -144,24 +145,28 @@ export default function Home() {
                 </div>
             </div>
 
-            <div className="flex gap-3 mt-[4rem]">
-                <h2 className="text-3xl font-bold">Recent Edits</h2>
-                <div className="relative ml-auto overflow-hidden">
-                    <FontAwesomeIcon icon={faMagnifyingGlass} className='absolute w-[30px] h-[30px] top-[16px] left-[7px] text-slate-500' />
-                    <input type="text" name="search_text" id="" className="h-full outline-none pl-[40px] px-4 py-3 min-w-[300px] border-2 border-slate-300 rounded-lg focus:border-slate-400" />
-                </div>
-            </div>
+            <SignedIn>
+                { images.length > 0 ? (
+                    <div className="grid gap-5 grid-cols-3 mt-5">
+                        <div className="flex gap-3 mt-[4rem]">
+                            <h2 className="text-3xl font-bold">Recent Edits</h2>
+                            <div className="relative ml-auto overflow-hidden">
+                                <FontAwesomeIcon icon={faMagnifyingGlass} className='absolute w-[30px] h-[30px] top-[16px] left-[7px] text-slate-500' />
+                                <input type="text" name="search_text" id="" className="h-full outline-none pl-[40px] px-4 py-3 min-w-[300px] border-2 border-slate-300 rounded-lg focus:border-slate-400" />
+                            </div>
+                        </div>
 
-            <div className="grid gap-5 grid-cols-3 mt-5">
-                {images.map((image, index) => (
-                    <EditView key={index.toString()} id={image._id} src={image.path} title={image.name} icon={iconMap[image.conversionType]} deleted={() => onImageDeleted(image._id)} />
-                ))}
-            </div>
+                        { images.map((image, index) => (
+                            <EditView key={index.toString()} id={image._id} src={image.path} title={image.name} icon={iconMap[image.conversionType]} deleted={() => onImageDeleted(image._id)} />
+                        )) }
 
-            <div className="flex gap-3 justify-center items-center mt-5">
-                <button className="btn btn-primary p-1 flex gap-2 items-center btn-sm disabled:opacity-50" onClick={() => handlePageChange(page.currentPage - 1)} disabled={page.currentPage === 1}><FontAwesomeIcon icon={faChevronLeft}/> Previous</button>
-                <button className="btn btn-primary p-1 flex gap-2 items-center btn-sm disabled:opacity-50" onClick={() => handlePageChange(page.currentPage + 1)} disabled={page.currentPage === page.totalPages}>Next <FontAwesomeIcon icon={faChevronRight}/></button>
-            </div>
+                        <div className="flex gap-3 justify-center items-center mt-5">
+                            <button className="btn btn-primary p-1 flex gap-2 items-center btn-sm disabled:opacity-50" onClick={() => handlePageChange(page.currentPage - 1)} disabled={page.currentPage === 1}><FontAwesomeIcon icon={faChevronLeft}/> Previous</button>
+                            <button className="btn btn-primary p-1 flex gap-2 items-center btn-sm disabled:opacity-50" onClick={() => handlePageChange(page.currentPage + 1)} disabled={page.currentPage === page.totalPages}>Next <FontAwesomeIcon icon={faChevronRight}/></button>
+                        </div>
+                    </div>
+                ) : <h3 className="text-3xl text-center w-full mt-[3rem] font-semibold text-slate-400">Wow such empty <FontAwesomeIcon icon={faFaceFrownOpen}/></h3> }
+            </SignedIn>
 
             <ToastContainer/>
         </div>

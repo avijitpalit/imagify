@@ -22,10 +22,10 @@ const getImages = async (clerkId: string, page: number) => {
         await connectDB()
         const user = await User.findOne({clerkId})
         if(!user) throw 'User not found'
-        // console.log(user)
+        console.log(user)
         const pageSize = 3
-        const total = await Img.find({userId: '66c466a08e07621e73d04064'}, {userId: 0, __v: 0}).countDocuments()
-        const images = await Img.find({userId: '66c466a08e07621e73d04064'}, {userId: 0, __v: 0}).skip((page - 1) * pageSize).limit(pageSize)
+        const total = await Img.find({userId: user._id}, {userId: 0, __v: 0}).countDocuments()
+        const images = await Img.find({userId: user._id}, {userId: 0, __v: 0}).skip((page - 1) * pageSize).limit(pageSize)
         
         const totalPages = Math.ceil(total / pageSize)
         // console.log(images)
