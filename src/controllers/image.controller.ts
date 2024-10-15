@@ -22,13 +22,10 @@ const getImages = async (clerkId: string, page: number) => {
         await connectDB()
         const user = await User.findOne({clerkId})
         if(!user) throw 'User not found'
-        console.log(user)
         const pageSize = 3
         const total = await Img.find({userId: user._id}, {userId: 0, __v: 0}).countDocuments()
         const images = await Img.find({userId: user._id}, {userId: 0, __v: 0}).skip((page - 1) * pageSize).limit(pageSize)
-        
         const totalPages = Math.ceil(total / pageSize)
-        // console.log(images)
         return {done: true, images: JSON.parse(JSON.stringify(images)), totalPages, page}
     } catch (error) {
         console.log(error)
@@ -63,6 +60,42 @@ const deleteImage = async (id: string) => {
         return false
     }
     
+}
+
+export const searchImage = async(clerkId: string, s: string) => {
+    try {
+        await connectDB()
+        const user = await User.findOne({clerkId})
+        if(!user) throw 'User not found'
+        const images = await Img.aggregate([
+            {
+                $search: {
+                    index: "default",  // The name of the search index you created in MongoDB Atlas
+                    text: {
+                        query: s,  // The term you want to search
+                        path: 'name'
+                    }
+                }
+            },
+            {
+                $match: {
+                    userId: user._id  // Additional filtering after the search stage
+                }
+            },
+            {
+                $project: {
+                    userId: 0,  // Exclude userId field from the results
+                    __v: 0      // Exclude __v field from the results
+                }
+            }
+        ])
+        
+        // console.log(images)
+        return {done: true, images: JSON.parse(JSON.stringify(images))}
+    } catch(error) {
+        console.log(error)
+        return {done: false}
+    }
 }
 
 export {createImage, getImages, deleteImage}
