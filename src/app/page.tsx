@@ -83,10 +83,12 @@ export default function Home() {
     const [page, setPage] = useState({currentPage: 1, totalPages: 0})
     const query = useSearchParams()
     const [isSearching, setIsSearching] = useState(false)
+    const [searchText, setSearchText] = useState('')
 
     useEffect(() => {
         if(!user?.id) return
         const currentUserId = user?.id
+        // console.log(currentUserId);
         setCurrentUserId(user?.id)
         const fetchImages = async () => {
             const currentPage = query.get('page') ? parseInt(query.get('page')!) : 1
@@ -107,7 +109,7 @@ export default function Home() {
             router.replace(`?${params.toString()}`, {scroll: false})
         } else router.push(`?page=${page}`, {scroll: false})
         // router.push(`?page=${page}`, {scroll: false})
-        const imagesData = await getImages(currentUserId!, page)
+        const imagesData = await getImages(currentUserId!, page, searchText);
         if(imagesData.done){
             setImages(imagesData.images)
             setPage((prev: any) => ({
@@ -140,6 +142,10 @@ export default function Home() {
         setIsSearching(true)
     }
 
+    const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchText(event.target.value);
+    }
+
     type Callback = (...args: any[]) => Promise<any>
     const debounce = (callback: Callback, wait: number): Callback  => {
         let timeoutId: any = null;
@@ -151,28 +157,26 @@ export default function Home() {
         };
     }
 
-    const searchImageByText = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            const clerkId = user?.id!
-            const search = async () => {
-                return await searchImage(clerkId, event.target.value)
-            }
-            // console.log(await search())
-            // const r = await searchImage(clerkId, event.target.value)
-            const debouncedSearch = debounce(search, 300)
-            const r = await debouncedSearch()
-            console.log(r);
-            if(r.done){
-                setImages(r.images)
-            }
-        } catch (error) {
-            
-        }
-    }
-
     function test2(){
         return 'hello'
     }
+    const searchImageByText = debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const clerkId = user?.id!;
+            const s = event.target.value;
+            setSearchText(s);
+            const currentPage = query.get('page') ? parseInt(query.get('page')!) : 1;
+            const r = await getImages(clerkId, currentPage, s);
+            // console.log(r);
+            if(r.done){
+                setImages(r.images)
+                setPage({currentPage: r.page!, totalPages: r.totalPages!})
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error('Something went wring!');
+        }
+    }, 300);
 
     return (
         <div className='w-full max-w-[1000px]'>
