@@ -21,10 +21,61 @@ const getImages = async (clerkId: string, page: number, s: string = '') => {
     try {
         await connectDB()
         const user = await User.findOne({clerkId})
+        console.log(s)
         if(!user) throw 'User not found'
-        const pageSize = 3
-        const total = await Img.find({userId: user._id}, {userId: 0, __v: 0}).countDocuments()
-        const images = await Img.find({userId: user._id}, {userId: 0, __v: 0}).skip((page - 1) * pageSize).limit(pageSize)
+        const pageSize = 3;
+        
+        // const images = await Img.find({userId: user._id}, {userId: 0, __v: 0}).skip((page - 1) * pageSize).limit(pageSize)
+        const images = await Img.aggregate([
+            ...(s ? [{
+                $search: {
+                    index: "default",  // The name of the search index you created in MongoDB Atlas
+                    text: {
+                        query: s,  // The term you want to search
+                        path: 'name'
+                    }
+                }
+            }] : []),
+            {
+                $match: {
+                    userId: user._id  // Additional filtering after the search stage
+                }
+            },
+            {
+                $project: {
+                    userId: 0,  // Exclude userId field from the results
+                    __v: 0      // Exclude __v field from the results
+                }
+            },
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize }
+        ]);
+        // skip((page - 1) * pageSize).limit(pageSize)
+        // console.log(images);
+        const total = (await Img.aggregate([
+            ...(s ? [{
+                $search: {
+                    index: "default",  // The name of the search index you created in MongoDB Atlas
+                    text: {
+                        query: s,  // The term you want to search
+                        path: 'name'
+                    }
+                }
+            }] : []),
+            {
+                $match: {
+                    userId: user._id  // Additional filtering after the search stage
+                }
+            },
+            {
+                $project: {
+                    userId: 0,  // Exclude userId field from the results
+                    __v: 0      // Exclude __v field from the results
+                }
+            },
+            { $count: 'count' }
+        ]))[0].count;
+        // console.log(total);
         const totalPages = Math.ceil(total / pageSize)
         return {done: true, images: JSON.parse(JSON.stringify(images)), totalPages, page}
     } catch (error) {
@@ -62,7 +113,7 @@ const deleteImage = async (id: string) => {
     
 }
 
-export const searchImage = async(clerkId: string, s: string) => {
+/* export const searchImage = async(clerkId: string, s: string) => {
     try {
         await connectDB()
         const user = await User.findOne({clerkId})
@@ -96,6 +147,6 @@ export const searchImage = async(clerkId: string, s: string) => {
         console.log(error)
         return {done: false}
     }
-}
+} */
 
 export {createImage, getImages, deleteImage}

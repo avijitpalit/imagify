@@ -3,7 +3,7 @@
 import { createUser, getUserIdByClerkId } from "@/controllers/user.controller";
 import { FC, useEffect, useState } from "react";
 import { useClerk } from '@clerk/clerk-react';
-import { createImage, deleteImage, getImages, getImagesDemo, searchImage } from "@/controllers/image.controller";
+import { createImage, deleteImage, getImages, getImagesDemo } from "@/controllers/image.controller";
 import Image from "next/image";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWandMagicSparkles, faEraser, faObjectGroup, faPalette, faMagnifyingGlass, faMagicWandSparkles, faHome, faChevronRight, faChevronLeft, faTrashAlt, faFaceFrownOpen } from '@fortawesome/free-solid-svg-icons'
@@ -119,7 +119,7 @@ export default function Home() {
         }
     }
 
-    const handleNextClick = async () => {
+    /* const handleNextClick = async () => {
         if(!currentUserId) return
         const imagesData = await getImages(currentUserId!, 2)
         if(imagesData.done){
@@ -129,7 +129,7 @@ export default function Home() {
                 currentPage: imagesData.page
             }))
         }
-    }
+    } */
 
     const onImageDeleted = (id: string) => {
         setImages(images.filter(image => image._id != id))
@@ -137,13 +137,7 @@ export default function Home() {
     }
 
     const test = async () => {
-        const data = await searchImage(user?.id!, 'Recolor')
-        console.log(data)
-        setIsSearching(true)
-    }
-
-    const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchText(event.target.value);
+        
     }
 
     type Callback = (...args: any[]) => Promise<any>
@@ -157,9 +151,6 @@ export default function Home() {
         };
     }
 
-    function test2(){
-        return 'hello'
-    }
     const searchImageByText = debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
             const clerkId = user?.id!;
@@ -169,12 +160,13 @@ export default function Home() {
             const r = await getImages(clerkId, currentPage, s);
             // console.log(r);
             if(r.done){
-                setImages(r.images)
-                setPage({currentPage: r.page!, totalPages: r.totalPages!})
+                setImages(r.images);
+                console.log(r.totalPages);
+                setPage({currentPage: r.page!, totalPages: r.totalPages!});
             }
         } catch (error) {
             console.log(error);
-            toast.error('Something went wring!');
+            toast.error('Something went wrong!');
         }
     }, 300);
 
