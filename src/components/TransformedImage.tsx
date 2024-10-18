@@ -3,6 +3,13 @@ import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, getCldImageUrl } from 'next-cloudinary';
 import React from 'react'
+// import { v2 as cloudinary } from 'cloudinary';
+
+/* cloudinary.config({
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+}); */
 
 const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded, onError, renderKey, ...transformProperties }: any) => {
     const handleDownload = (e: any) => {
@@ -17,7 +24,7 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded,
         <div className='h-full flex flex-col'>
             <h4 className='text-2xl font-bold'>Transformed</h4>
             {transformStart && publicId ? (
-                <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg relative'>
+                <div className='mt-3 overflow-hidden grow relative bg-gray-100 rounded-lg'>
                     <a onClick={handleDownload} href="#" className="p-4 rounded-lg bg-[var(--color-green)] w-[40px] h-[40px] flex items-center justify-center absolute right-3 top-3 hover:bg-[var(--color-green-dark)]">
                         <FontAwesomeIcon icon={faDownload} className='text-white'/>
                     </a>
@@ -27,9 +34,7 @@ const TransformedImage = ({ publicId, transformStart, isTransforming, imgLoaded,
                     alt='Transformed image'
                     className='rounded-lg'
                     onLoadStart={() => { console.log('load started') }}
-                    onLoad={() => {
-                        imgLoaded()
-                    }}
+                    onLoad={() => imgLoaded()}
                     onError={onError}
                     {...transformProperties}
                     />

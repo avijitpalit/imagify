@@ -11,6 +11,13 @@ import { useClerk } from '@clerk/clerk-react';
 import { createImage } from '@/controllers/image.controller';
 import TransformedImage from '@/components/TransformedImage';
 import { initialImageInfo } from '@/utils/helper';
+// import { v2 as cloudinary } from 'cloudinary';
+
+/* cloudinary.config({
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+}); */
 
 declare interface FormValue {
     name: string,
@@ -29,7 +36,8 @@ export default function Page() {
     const [uploaded, setUploaded] = useState(false)
     const [cropEnabled, setCropEnabled] = useState(false)
     const [saveEnabled, setSaveEnabled] = useState(false)
-    const [publicId, setPublicId] = useState<string>('')
+    const [publicId, setPublicId] = useState('')
+    const [defaultResolution, setDefaultResolution] = useState({width: '0', height: '0'})
     
     const initialFormValue: FormValue = {
         name: '',
@@ -48,6 +56,22 @@ export default function Page() {
         setPublicId('')
     }
 
+    useEffect(() => {
+        const fetchData = async () => {
+            console.log(imageInfo.public_id);
+            const response = await fetch(`/api/cloudinary?public_id=${'zjpdy5bzmufrn9otohbz'}`);
+            const data = await response.json();
+            // console.log(data);
+            setDefaultResolution({
+                width: data.width.toString(),
+                height: data.height.toString()
+            });
+        }
+        if(!uploaded) return;
+        fetchData();
+    }, [uploaded]);
+    
+
     /* const handleTransform = () => {
         setTransformStart(true)
         setIsTransforming(true)
@@ -65,12 +89,13 @@ export default function Page() {
     } */
 
     const handleSubmit = (e: any) => {
-        e.preventDefault()
+        e.preventDefault();
+        const name = e.target.name.value.trim() ? e.target.name.value : `Generative fill - ${ (new Date()).toLocaleString() }`;
         setFormValue(prev => ({
             ...prev,
-            name: e.target.name.value,
-            width: e.target.width.value,
-            height: e.target.height.value,
+            name,
+            width: e.target.width.value ? e.target.width.value : defaultResolution.width,
+            height: e.target.height.value ? e.target.height.value : defaultResolution.height,
             crop: e.target.crop.value,
             ...(
                 e.target.crop.value == 'crop' && {
@@ -117,18 +142,18 @@ export default function Page() {
                 <div className="form-row flex gap-3 mt-3">
                     <div className='flex-auto'>
                         <label className='block text-lg font-semibold' htmlFor="width">Width</label>
-                        <input className='input' type="number" name="width" id="width" required />
+                        <input className='input' type="number" name="width" id="width" placeholder={defaultResolution.width} />
                     </div>
                     <div className='flex-auto'>
                         <label className='block text-lg font-semibold' htmlFor="height">Height</label>
-                        <input className='input' type="number" name="height" id="height" required />
+                        <input className='input' type="number" name="height" id="height" placeholder={defaultResolution.height} />
                     </div>
                 </div>
 
                 <div className="form-row mt-3 flex gap-3">
                     <div className="flex-1">
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
-                        <select className='input bg-white' name="crop" id="crop" onChange={handleCropChange}>
+                        <select className='input bg-white' name="crop" id="crop" onChange={handleCropChange} defaultValue='auto'>
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
                             <option value="fill">Fill</option>

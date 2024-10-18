@@ -211,8 +211,6 @@ export default function Home() {
             </SignedIn>
 
             <ToastContainer/>
-
-            <button className="btn btn-primary btn-sm" onClick={test}>Test</button>
         </div>
     );
 }
