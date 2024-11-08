@@ -67,3 +67,5 @@ body {
 .bg-primary{ background: var(--color-primary); }
 .bg-secondary{ background: var(--color-secondary); }
 .bg-green{ background: var(--color-green); }
+
+.form-row span.required{ color: #e74c3c; }

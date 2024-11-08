@@ -6,7 +6,7 @@ import { faDownload, faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icon
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CldImage, CldUploadWidget, getCldImageUrl } from 'next-cloudinary';
 import Image from 'next/image';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useClerk } from '@clerk/clerk-react';
@@ -42,6 +42,24 @@ const Page = () => {
     }
     const [formValue, setFormValue] = useState(initialFormValue)
     const [renderKey, setRenderKey] = useState('')
+    const [defaultResolution, setDefaultResolution] = useState({width: '0', height: '0'})
+    const date = new Date()
+    const defaultName = `Remove object - ${date.getDate()}.${date.getMonth()}.${date.getFullYear()}`
+
+    useEffect(() => {
+        const fetchData = async () => {
+            // console.log(imageInfo.public_id);
+            const response = await fetch(`/api/cloudinary?public_id=${imageInfo.public_id}`);
+            const data = await response.json();
+            // console.log(data);
+            setDefaultResolution({
+                width: data.width,
+                height: data.height
+            });
+        }
+        if(!uploaded) return;
+        fetchData();
+    }, [uploaded]);
 
     const handleSuccess = (results: any) => {
         setImageInfo(results.info)
@@ -51,11 +69,12 @@ const Page = () => {
 
     const handleSubmit = (e: any) => {
         e.preventDefault()
+        const name = e.target.name.value.trim() ? e.target.name.value : defaultName;
         setFormValue(prev => ({
             ...prev,
-            name: e.target.name.value,
-            width: e.target.width.value,
-            height: e.target.height.value,
+            name,
+            width: e.target.width.value ? e.target.width.value : defaultResolution.width,
+            height: e.target.height.value ? e.target.height.value : defaultResolution.height,
             crop: e.target.crop.value,
             remove: e.target.remove.value,
             ...(e.target.crop.value == 'crop' && { aspectRatio: `${formValue.ratio_1}:${formValue.ratio_2}` })
@@ -86,16 +105,16 @@ const Page = () => {
             <form action="" method='POST' onSubmit={handleSubmit}>
                 <div className="form-row">
                     <label className='block text-lg font-semibold' htmlFor="name">Name</label>
-                    <input className='input' type="text" name="name" id="name" />
+                    <input className='input' type="text" name="name" id="name" placeholder={defaultName} />
                 </div>
                 <div className="form-row flex gap-3 mt-3">
                     <div className='flex-1'>
                         <label className='block text-lg font-semibold' htmlFor="width">Width</label>
-                        <input className='input' type="number" name="width" id="width" required />
+                        <input className='input' type="number" name="width" id="width" placeholder={defaultResolution.width} required />
                     </div>
                     <div className='flex-1'>
                         <label className='block text-lg font-semibold' htmlFor="height">Height</label>
-                        <input className='input' type="number" name="height" id="height" required />
+                        <input className='input' type="number" name="height" id="height" placeholder={defaultResolution.height} required />
                     </div>
                 </div>
 
@@ -104,7 +123,7 @@ const Page = () => {
                         <label className='block text-lg font-semibold' htmlFor="crop">Crop</label>
                         <select className='input bg-white' name="crop" id="crop" onChange={(e: any) => {
                             setCropEnabled(e.target.value == 'crop' ? true : false)
-                        }}>
+                        }} defaultValue='auto'>
                             <option value="">-- Select --</option>
                             <option value="auto">Auto</option>
                             <option value="fill">Fill</option>
@@ -132,7 +151,7 @@ const Page = () => {
                 </div>
 
                 <div className="form-row mt-3">
-                    <label className='block text-lg font-semibold' htmlFor="remove">Object to Remove</label>
+                    <label className='block text-lg font-semibold' htmlFor="remove">Object to Remove <span className="required">*</span></label>
                     <input className='input' type="text" name="remove" id="remove" required />
                 </div>
 

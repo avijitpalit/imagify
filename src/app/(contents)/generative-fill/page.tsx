@@ -38,6 +38,8 @@ export default function Page() {
     const [saveEnabled, setSaveEnabled] = useState(false)
     const [publicId, setPublicId] = useState('')
     const [defaultResolution, setDefaultResolution] = useState({width: '0', height: '0'})
+    const date = new Date()
+    const defaultName = `Generative fill - ${date.getDate()}.${date.getMonth()}.${date.getFullYear()}`
     
     const initialFormValue: FormValue = {
         name: '',
@@ -58,13 +60,13 @@ export default function Page() {
 
     useEffect(() => {
         const fetchData = async () => {
-            console.log(imageInfo.public_id);
-            const response = await fetch(`/api/cloudinary?public_id=${'zjpdy5bzmufrn9otohbz'}`);
+            // console.log(imageInfo.public_id);
+            const response = await fetch(`/api/cloudinary?public_id=${imageInfo.public_id}`);
             const data = await response.json();
             // console.log(data);
             setDefaultResolution({
-                width: data.width.toString(),
-                height: data.height.toString()
+                width: data.width,
+                height: data.height
             });
         }
         if(!uploaded) return;
@@ -90,7 +92,7 @@ export default function Page() {
 
     const handleSubmit = (e: any) => {
         e.preventDefault();
-        const name = e.target.name.value.trim() ? e.target.name.value : `Generative fill - ${ (new Date()).toLocaleString() }`;
+        const name = e.target.name.value.trim() ? e.target.name.value : defaultName;
         setFormValue(prev => ({
             ...prev,
             name,
@@ -136,7 +138,7 @@ export default function Page() {
             <form action="" method="post" onSubmit={handleSubmit}>
                 <div className="form-row">
                     <label className='block text-lg font-semibold' htmlFor="name">Name</label>
-                    <input className='input' type="text" name="name" id="name" />
+                    <input className='input' type="text" name="name" id="name" placeholder={defaultName} />
                 </div>
 
                 <div className="form-row flex gap-3 mt-3">
