@@ -26,7 +26,7 @@ const Sidebar = () => {
   ]
 
   return (
-    <aside className='site-sidebar bg-gray-100 w-[350px] flex flex-col shrink-0'>
+    <aside className='site-sidebar bg-gray-100 w-[350px] flex flex-col shrink-0 md:hidden lg:block'>
         <div className="flex items-center py-4 gap-x-2 px-3 justify-center">
           <Image src={'/logo.svg'} width={40} height={0} alt='Site logo'/>
           <span className="text-lg font-semibold">Imagify</span>
